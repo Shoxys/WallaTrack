@@ -1,13 +1,10 @@
-# Wallatrack: high-level requirements, spec and scope
+# WallaTrack: high-level requirements, specification, and scope
 
-Westpac Innovation and Coding Competition, QUT Gardens Point, 16 to 17 Nov 2026.
-Draft for the team. Updated by Hackathon Lead from REQUIREMENTS.html (16 Nov, 4:20pm).
-
-> **Change in this version:** approve and decline now happen **at the moment of purchase**. When the customer is about to buy something, the Navigator wallaby pops up before the purchase goes through, shows how it affects their goal, and asks them to approve or decline it. The race updates straight away.
+Westpac Innovation and Coding Competition. Draft plan for the team, updated by Hackathon Lead.
 
 ## Overview
 
-Wallatrack is a mobile-first web app for Westpac customers. Pixel-art wallabies race along a track towards the customer's savings goal, and each wallaby is a projected future version of the customer.
+WallaTrack is a mobile-first web app for Westpac customers. Artistic wallabies race along a track towards the customer's savings goal, and each wallaby is a projected future version of the customer.
 
 The core moment is the **purchase check**. When the customer is about to spend, the AI Navigator, an animated wallaby, pops up mid-purchase. It shows in plain numbers how the purchase moves their goal date, then lets them **approve** (buy it and see the cost to the goal) or **decline** (skip it and stay on pace). After an approval, it offers ways to win the time back. A deterministic engine checks every number before it is shown.
 
@@ -24,19 +21,20 @@ The core moment is the **purchase check**. When the customer is about to spend, 
 
 ## Functional requirements
 
-1. **Goal.** Set a goal with an amount and a target. Mock savings count towards it.
-2. **Race track.** Four wallabies: You (current pace), Habit ghost (you without your top habit), Best you (your best past stretch) and People like you (illustrative peer pace).
-3. **Wallaby details.** Tap a wallaby to see its projected arrival date and the reason behind it.
-4. **Purchase check (core).** A simulated purchase (a demo "Pay" button on a mock checkout or card-tap screen) is held before it completes, and the Navigator wallaby pops up with:
+1. **Financial history.** A user's previous income and spending history (which will be analysed).
+2. **Goal.** Set a goal with an amount and a target. Mock savings count towards it.
+3. **Race track.** Four wallabies: You (current pace), Habit ghost (you without your top habit), Best you (your best past stretch) and People like you (illustrative peer pace). They sit on a race track timeline together, which the user can playback to see all wallabies run forwards together at different paces to the goal line.
+4. **Wallaby details.** Tap a wallaby to see its projected arrival date and the reason behind it.
+5. **Purchase check (core).** A simulated purchase (a demo "Pay" button on a mock checkout or card-tap screen) is held before it completes, and the Navigator wallaby pops up with:
    - the purchase (merchant, amount, category)
    - the goal impact in one line, for example "This pushes your first home starter back about 8 weeks" (the engine works out the date)
    - a habit link where one exists, for example "3rd takeaway this week"
    - **Approve** and **Decline** buttons
-5. **Approve.** The purchase completes, the You wallaby is visibly knocked back on the track, and the new arrival date is shown. The Navigator then offers three reroutes (Fastest, Side hustle, Comfortable), and picking one moves You forward again.
-6. **Decline.** The purchase is cancelled, You keeps its pace (with a small hop or cheer), and the Navigator shows the time saved against the goal.
-7. **What-if.** The customer can also type in a planned purchase (for example a $1,200 PC) to run the same purchase check without buying anything.
-8. **Habit insights and spending breakdown.** Cards drawn from transactions. They feed the habit line in the pop-up.
-9. **Decision history.** A short list of approved and declined purchases with their goal impact, which feeds the habit cards.
+6. **Approve.** The purchase completes, the You wallaby is visibly knocked back on the track, and the new arrival date is shown. The Navigator then offers three reroutes (Fastest, Side hustle, Comfortable), and picking one moves You forward again.
+7. **Decline.** The purchase is cancelled, You keeps its pace (with a small hop or cheer), and the Navigator shows the time saved against the goal.
+8. **What-if.** The customer can also type in a planned purchase (for example a $1,200 PC) to run the same purchase check without buying anything.
+9. **Habit insights and spending breakdown.** Cards drawn from transactions. They feed the habit line in the pop-up.
+10. **Decision history.** A short list of approved and declined purchases with their goal impact, which feeds the habit cards.
 
 ## Non-functional requirements
 
