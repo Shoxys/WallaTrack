@@ -24,6 +24,8 @@ export interface NavigatorReroute {
   how: string;
   boostCentsPerWeek: number;
   arrivalDate: string | null;
+  /** Days won back compared with the date after the purchase. Not offered unless positive. */
+  daysRecovered: number;
   line: string;
 }
 

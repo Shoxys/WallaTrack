@@ -61,12 +61,14 @@ export function rerouteLine(r: Reroute): string {
 }
 
 function toReroutes(check: PurchaseCheck): NavigatorReroute[] {
-  return check.reroutes.map((r) => ({
+  // Only routes that actually win time back are offered (a route already in use would not).
+  return check.reroutes.filter((r) => r.daysRecovered > 0).map((r) => ({
     id: r.id,
     label: r.label,
     how: r.how,
     boostCentsPerWeek: r.boostCentsPerWeek,
     arrivalDate: r.arrivalDate,
+    daysRecovered: r.daysRecovered,
     line: rerouteLine(r),
   }));
 }
