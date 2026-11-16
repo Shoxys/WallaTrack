@@ -1,0 +1,11 @@
+{
+  "description": "Track spending, set savings goals, and explore AI-powered insights and payment impact projections to make more confident financial decisions.",
+  "robots": {
+    "index": false
+  },
+  "accessibility": {
+    "addBypassLinks": false,
+    "ignoreReducedMotion": false
+  },
+  "title": "WallaTrack"
+}

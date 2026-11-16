@@ -1,0 +1,279 @@
+@import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Pixelify+Sans:wght@500;600;700&display=swap");
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-pixel: "Pixelify Sans", ui-monospace, monospace;
+
+  /* Westpac GEL-inspired palette */
+  --color-navy: #1f1c4f;
+  --color-navy-deep: #15123a;
+  --color-hero: #da1710;
+  --color-hero-deep: #a50f0a;
+  --color-ink: #181b25;
+  --color-muted: #575f65;
+  --color-faint: #8a8f98;
+  --color-line: #e4e4ea;
+  --color-canvas: #f3f4f6;
+  --color-success: #008a23;
+  --color-success-tint: #e3f4e7;
+  --color-danger: #c80038;
+  --color-danger-tint: #fbe5ec;
+  --color-amber: #a85b00;
+  --color-amber-tint: #fdf0dc;
+}
+
+@layer base {
+  html,
+  body {
+    font-family: var(--font-sans);
+    color: var(--color-ink);
+    -webkit-font-smoothing: antialiased;
+  }
+  button {
+    cursor: pointer;
+  }
+  button:disabled {
+    cursor: default;
+  }
+}
+
+@utility scrollbar-none {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@utility tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- Racer hop (two-frame sprite) ---------- */
+
+.wt-frame-b {
+  opacity: 0;
+}
+.wt-racer.is-hopping {
+  animation: wt-hop 440ms steps(3, end) infinite;
+}
+.wt-racer.is-hopping .wt-frame-a {
+  animation: wt-frame-a 440ms step-end infinite;
+  animation-delay: inherit;
+}
+.wt-racer.is-hopping .wt-frame-b {
+  animation: wt-frame-b 440ms step-end infinite;
+  animation-delay: inherit;
+}
+@keyframes wt-hop {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-22%);
+  }
+}
+@keyframes wt-frame-a {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  25%,
+  75% {
+    opacity: 0;
+  }
+}
+@keyframes wt-frame-b {
+  0%,
+  100% {
+    opacity: 0;
+  }
+  25%,
+  75% {
+    opacity: 1;
+  }
+}
+
+/* One-off cheer for a racer that stayed on pace */
+.wt-cheer {
+  animation: wt-cheer 900ms steps(4, end) 2;
+}
+@keyframes wt-cheer {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  40% {
+    transform: translateY(-45%);
+  }
+}
+
+/* ---------- Navigator moods ---------- */
+
+.wt-nav--idle .wt-nav-body,
+.wt-nav--worried .wt-nav-body {
+  animation: wt-bob 2.4s steps(4, end) infinite;
+}
+.wt-nav--thinking .wt-nav-body {
+  transform-origin: 30% 90%;
+  animation: wt-think 1.6s steps(4, end) infinite;
+}
+.wt-nav--happy .wt-nav-body {
+  animation: wt-happy 700ms steps(4, end) infinite;
+}
+.wt-nav--worried .wt-nav-body {
+  transform-origin: 30% 100%;
+  animation: wt-sway 2.8s steps(6, end) infinite;
+}
+@keyframes wt-bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4%);
+  }
+}
+@keyframes wt-think {
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+  50% {
+    transform: rotate(-6deg);
+  }
+}
+@keyframes wt-happy {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0);
+  }
+  45% {
+    transform: translateY(-18%) rotate(-4deg);
+  }
+}
+@keyframes wt-sway {
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+  50% {
+    transform: rotate(3deg) translateY(2%);
+  }
+}
+
+.wt-eye-open {
+  animation: wt-eye-open 4.2s step-end infinite;
+}
+.wt-eye-closed {
+  opacity: 0;
+  animation: wt-eye-closed 4.2s step-end infinite;
+}
+@keyframes wt-eye-open {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  92%,
+  96% {
+    opacity: 0;
+  }
+}
+@keyframes wt-eye-closed {
+  0%,
+  100% {
+    opacity: 0;
+  }
+  92%,
+  96% {
+    opacity: 1;
+  }
+}
+
+.wt-dot {
+  animation: wt-dot 1s ease-in-out infinite;
+}
+@keyframes wt-dot {
+  0%,
+  60%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.35;
+  }
+  30% {
+    transform: translateY(-3px);
+    opacity: 1;
+  }
+}
+
+.wt-shimmer {
+  background: linear-gradient(90deg, #ececf1 0%, #f7f7fa 50%, #ececf1 100%);
+  background-size: 200% 100%;
+  animation: wt-shimmer 1.2s linear infinite;
+}
+@keyframes wt-shimmer {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: 0 0;
+  }
+}
+
+/* Checkered finish line */
+.wt-finish {
+  background-image:
+    linear-gradient(45deg, #fff 25%, transparent 25%, transparent 75%, #fff 75%),
+    linear-gradient(45deg, #fff 25%, transparent 25%, transparent 75%, #fff 75%);
+  background-size: 8px 8px;
+  background-position:
+    0 0,
+    4px 4px;
+  background-color: #1f1c4f;
+}
+
+/* Range input used by the race playback scrubber */
+.wt-range {
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+}
+.wt-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 9999px;
+  background: #fff;
+  border: 4px solid #ff4d42;
+  box-shadow: 0 1px 4px rgb(0 0 0 / 0.35);
+}
+.wt-range::-moz-range-thumb {
+  width: 12px;
+  height: 12px;
+  border-radius: 9999px;
+  background: #fff;
+  border: 4px solid #ff4d42;
+}
+.wt-range::-webkit-slider-runnable-track {
+  height: 18px;
+  background: transparent;
+}
+
+/* ---------- Calm motion ---------- */
+
+.wt-calm *,
+.wt-calm *::before,
+.wt-calm *::after {
+  animation-duration: 0.001ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
