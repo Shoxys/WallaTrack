@@ -1,17 +1,17 @@
-import type { LucideIcon } from "lucide-react";
 import {
-  Briefcase,
-  Bus,
-  Coffee,
-  Film,
-  House,
-  Monitor,
-  PiggyBank,
-  ShoppingBag,
-  UtensilsCrossed,
-  Zap,
-  ShoppingBasket,
-} from "lucide-react";
+  DesktopIcon,
+  HouseIcon,
+  InvoiceIcon,
+  MoneyInIcon,
+  PiggyBankIcon,
+  PlayCircleIcon,
+  ShoppingBagIcon,
+  ShoppingBasketIcon,
+  TakeoutCoffeeIcon,
+  TakeoutFoodIcon,
+  TransportIcon,
+  type IconComponent,
+} from "@/components/GelIcons";
 
 export type Category =
   | "income"
@@ -25,20 +25,73 @@ export type Category =
   | "fun"
   | "electronics";
 
+/**
+ * Icons are GEL glyphs. Colours come from GEL's WBC primitives and reserved palette:
+ * `color` is a text-safe shade for the glyph and label, `tint` the icon backdrop, and
+ * `chart` the brighter data-visualisation swatch.
+ */
 export const CATEGORIES: Record<
   Category,
-  { label: string; color: string; tint: string; icon: LucideIcon }
+  { label: string; color: string; tint: string; chart: string; icon: IconComponent }
 > = {
-  income: { label: "Income", color: "#008A23", tint: "#E3F4E7", icon: Briefcase },
-  housing: { label: "Rent", color: "#1F1C4F", tint: "#E6E5F0", icon: House },
-  groceries: { label: "Groceries", color: "#2F8F5B", tint: "#E4F2EA", icon: ShoppingBasket },
-  takeaway: { label: "Takeaway", color: "#D9480F", tint: "#FCE9DE", icon: UtensilsCrossed },
-  coffee: { label: "Coffee", color: "#8A5A33", tint: "#F3E9DF", icon: Coffee },
-  transport: { label: "Transport", color: "#1C6FD1", tint: "#E1EDFB", icon: Bus },
-  shopping: { label: "Shopping", color: "#7A3FB8", tint: "#EFE6F8", icon: ShoppingBag },
-  bills: { label: "Bills", color: "#0E7C86", tint: "#DFF1F2", icon: Zap },
-  fun: { label: "Entertainment", color: "#7A3FB8", tint: "#EFE6F8", icon: Film },
-  electronics: { label: "Electronics", color: "#7A3FB8", tint: "#EFE6F8", icon: Monitor },
+  income: {
+    label: "Income",
+    color: "#006D00",
+    tint: "#D9ECD9",
+    chart: "#008000",
+    icon: MoneyInIcon,
+  },
+  housing: { label: "Rent", color: "#1F1C4F", tint: "#E2E1F4", chart: "#1F1C4F", icon: HouseIcon },
+  groceries: {
+    label: "Groceries",
+    color: "#0063A7",
+    tint: "#D9EAF6",
+    chart: "#0074C4",
+    icon: ShoppingBasketIcon,
+  },
+  takeaway: {
+    label: "Takeaway",
+    color: "#DA1710",
+    tint: "#FFF0F0",
+    chart: "#DA1710",
+    icon: TakeoutFoodIcon,
+  },
+  coffee: {
+    label: "Coffee",
+    color: "#9D4C07",
+    tint: "#FDE7D3",
+    chart: "#F57A0F",
+    icon: TakeoutCoffeeIcon,
+  },
+  transport: {
+    label: "Transport",
+    color: "#423C97",
+    tint: "#F1F0FA",
+    chart: "#6F69C9",
+    icon: TransportIcon,
+  },
+  shopping: {
+    label: "Shopping",
+    color: "#B32B99",
+    tint: "#FFECFB",
+    chart: "#FF3DDB",
+    icon: ShoppingBagIcon,
+  },
+  bills: { label: "Bills", color: "#8717BA", tint: "#EBCDF9", chart: "#991AD6", icon: InvoiceIcon },
+  fun: {
+    label: "Entertainment",
+    color: "#B32B99",
+    tint: "#FFECFB",
+    chart: "#FF3DDB",
+    icon: PlayCircleIcon,
+  },
+  electronics: {
+    label: "Electronics",
+    color: "#423C97",
+    tint: "#E2E1F4",
+    chart: "#423C97",
+    icon: DesktopIcon,
+  },
 };
 
 export interface Txn {
@@ -125,7 +178,7 @@ export interface Habit {
   barsLabel: string;
   bars: number[];
   facts: { label: string; value: string }[];
-  icon: LucideIcon;
+  icon: IconComponent;
 }
 
 export const HABITS: Habit[] = [
@@ -146,7 +199,7 @@ export const HABITS: Habit[] = [
       { label: "12-week total", value: "$748.80" },
       { label: "Average order", value: "$34.04" },
     ],
-    icon: UtensilsCrossed,
+    icon: TakeoutFoodIcon,
   },
   {
     id: "coffee",
@@ -163,7 +216,7 @@ export const HABITS: Habit[] = [
       { label: "12-week total", value: "$278.40" },
       { label: "Per cup", value: "$5.80" },
     ],
-    icon: Coffee,
+    icon: TakeoutCoffeeIcon,
   },
   {
     id: "payday",
@@ -180,7 +233,7 @@ export const HABITS: Habit[] = [
       { label: "12-week total", value: "$1,814.40" },
       { label: "Per fortnight", value: "$302.40" },
     ],
-    icon: PiggyBank,
+    icon: PiggyBankIcon,
   },
 ];
 
@@ -196,15 +249,27 @@ export interface Purchase {
   habitLink?: string;
   habitId?: HabitId;
   whatIf?: boolean;
+  /** Pending online purchases: when it was placed and why it was held */
+  placed?: string;
+  heldBecause?: string;
 }
 
-export const DEMO_PURCHASES: Purchase[] = [
+/** Card approval limit for online purchases; anything above it, or linked to a habit, is held. */
+export const APPROVAL_LIMIT_CENTS = 10_000;
+
+/**
+ * Online card purchases held as pending until the customer approves (settles) or declines
+ * (cancels) them.
+ */
+export const PENDING_PURCHASES: Purchase[] = [
   {
     id: "pc",
     merchant: "Pixel Forge",
     item: "Gaming PC",
     category: "electronics",
     amountCents: 120_000,
+    placed: "Today, 9:14am",
+    heldBecause: "over your $100 online limit",
   },
   {
     id: "ubereats",
@@ -214,39 +279,41 @@ export const DEMO_PURCHASES: Purchase[] = [
     amountCents: 3860,
     habitLink: "3rd takeaway this week",
     habitId: "ubereats",
+    placed: "Today, 12:31pm",
+    heldBecause: "linked to a habit you track",
   },
   {
-    id: "coffee",
-    merchant: "Bean There Café",
-    item: "Oat flat white",
-    category: "coffee",
-    amountCents: 580,
-    habitLink: "3rd coffee this week",
-    habitId: "coffee",
+    id: "tickets",
+    merchant: "Ticketek",
+    item: "2 × concert tickets",
+    category: "fun",
+    amountCents: 17_840,
+    placed: "Yesterday, 8:02pm",
+    heldBecause: "over your $100 online limit",
   },
 ];
 
 export const RACER_META = {
   you: {
-    color: "#FF4D42",
+    color: "#F1423C",
     tag: "Current pace",
     summary:
       "Your real pace from the last 12 weeks of income and spending, including any plan you pick. This is the only racer your purchases move.",
   },
   ghost: {
-    color: "#B8A9FF",
+    color: "#A9A5DF",
     tag: "Without top habit",
     summary:
       "You, minus Friday Uber Eats. Same income, same rent, same everything else — just $62.40 a week that stays in your account.",
   },
   best: {
-    color: "#F5B83D",
+    color: "#F9B071",
     tag: "Best recent month",
     summary:
       "Your best stretch: August 2026, when you kept $762 over the month. If every month looked like that, this is where you finish.",
   },
   peers: {
-    color: "#3CC9B4",
+    color: "#FF9EED",
     tag: "Illustrative",
     summary:
       "An illustrative pace for savers aged 25–34 on a similar income and rent. A reference point, not a target.",

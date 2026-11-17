@@ -7,7 +7,14 @@ import {
   type PlanId,
   type RacerId,
 } from "@/engine/engine";
-import { PERSONA, TRANSACTIONS, type HabitId, type Purchase, type Txn } from "@/data/persona";
+import {
+  PENDING_PURCHASES,
+  PERSONA,
+  TRANSACTIONS,
+  type HabitId,
+  type Purchase,
+  type Txn,
+} from "@/data/persona";
 
 export type Tab = "home" | "account" | "pay" | "goal";
 export type GoalView = "setup" | "analysing" | "insights" | "timeline";
@@ -40,6 +47,8 @@ export interface State {
   planId: PlanId | null;
   addedTxns: Txn[];
   decisions: Decision[];
+  /** Pending online purchases that have been approved (settled) or declined (cancelled) */
+  resolvedPending: string[];
   check: CheckState | null;
   calm: boolean;
   openHabit: HabitId | null;
@@ -56,6 +65,7 @@ type Action =
   | { type: "setGoal"; goal: Omit<Goal, "startSavedCents"> }
   | { type: "startCheck"; purchase: Purchase }
   | { type: "reopenCheck" }
+  | { type: "restorePending" }
   | { type: "dismissCheck" }
   | { type: "decide"; outcome: "approved" | "declined" }
   | { type: "closeResult" }
@@ -84,6 +94,7 @@ const initialState: State = {
   planId: null,
   addedTxns: [],
   decisions: [],
+  resolvedPending: [],
   check: null,
   calm: false,
   openHabit: null,
@@ -108,11 +119,19 @@ function reducer(state: State, action: Action): State {
         tab: action.tab,
         goalView,
         openHabit: null,
+        // Leaving via the nav closes any purchase sheet; pending items stay pending.
+        check: null,
         navKey: state.navKey + 1,
       };
     }
     case "goalView":
-      return { ...state, tab: "goal", goalView: action.view, navKey: state.navKey + 1 };
+      return {
+        ...state,
+        tab: "goal",
+        goalView: action.view,
+        check: null,
+        navKey: state.navKey + 1,
+      };
     case "setGoal":
       return {
         ...state,
@@ -135,8 +154,10 @@ function reducer(state: State, action: Action): State {
     case "reopenCheck":
       return state.check ? { ...state, tab: "pay", check: { ...state.check, open: true } } : state;
     case "dismissCheck":
-      // A dismissed check keeps the purchase on hold until approved or declined.
-      return state.check ? { ...state, check: { ...state.check, open: false } } : state;
+      // Dismissing leaves a pending purchase pending until it is approved or declined.
+      return { ...state, check: null };
+    case "restorePending":
+      return { ...state, resolvedPending: [] };
     case "decide": {
       if (!state.check) return state;
       const { purchase } = state.check;
@@ -155,8 +176,12 @@ function reducer(state: State, action: Action): State {
         reroute: null,
       };
       const charged = action.outcome === "approved" && !whatIf;
+      const isPending = !whatIf && PENDING_PURCHASES.some((p) => p.id === purchase.id);
       return {
         ...state,
+        resolvedPending: isPending
+          ? [...new Set([...state.resolvedPending, purchase.id])]
+          : state.resolvedPending,
         savedCents: charged ? state.savedCents - purchase.amountCents : state.savedCents,
         addedTxns: charged
           ? [
@@ -263,4 +288,13 @@ export function useProjection() {
 export function useTransactions(): Txn[] {
   const { state } = useStore();
   return useMemo(() => [...state.addedTxns, ...TRANSACTIONS], [state.addedTxns]);
+}
+
+/** Online purchases still awaiting approval. */
+export function usePending(): Purchase[] {
+  const { state } = useStore();
+  return useMemo(
+    () => PENDING_PURCHASES.filter((p) => !state.resolvedPending.includes(p.id)),
+    [state.resolvedPending],
+  );
 }

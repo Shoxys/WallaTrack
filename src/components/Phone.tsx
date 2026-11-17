@@ -1,7 +1,20 @@
-import { CircleDollarSign, House, Target, Wallet } from "lucide-react";
 import { motion } from "motion/react";
 import { useEffect, useState, type ReactNode } from "react";
-import { useStore, type Tab } from "@/state/store";
+import { usePending, useStore, type Tab } from "@/state/store";
+import {
+  HouseFilledIcon,
+  HouseIcon,
+  PayFilledIcon,
+  PayIcon,
+  TargetFilledIcon,
+  TargetIcon,
+  WalletFilledIcon,
+  NotificationIcon,
+  WalletIcon,
+  type IconComponent,
+} from "./GelIcons";
+import { WestpacLogo } from "./Brand";
+import { PERSONA } from "@/data/persona";
 import { cx } from "./ui";
 
 export const PHONE_W = 390;
@@ -64,7 +77,7 @@ export function StatusBar({ tone = "dark" }: { tone?: "dark" | "light" }) {
   return (
     <div
       className={cx(
-        "relative z-30 flex h-[54px] shrink-0 items-center justify-between px-8 pt-1.5",
+        "relative z-30 flex h-[54px] shrink-0 items-center justify-between bg-white px-8 pt-1.5",
         color,
       )}
     >
@@ -88,41 +101,91 @@ export function StatusBar({ tone = "dark" }: { tone?: "dark" | "light" }) {
   );
 }
 
-const NAV: { tab: Tab; label: string; icon: typeof House }[] = [
-  { tab: "home", label: "Home", icon: House },
-  { tab: "account", label: "Account", icon: Wallet },
-  { tab: "pay", label: "Pay", icon: CircleDollarSign },
-  { tab: "goal", label: "Goal", icon: Target },
+/** GEL Header: white bar, muted-soft bottom rule, Westpac logo left. */
+export function AppHeader() {
+  const { dispatch } = useStore();
+  const pending = usePending().length;
+  return (
+    <header className="relative z-30 flex h-[50px] shrink-0 items-center justify-between border-b border-line bg-white px-5">
+      <button
+        onClick={() => dispatch({ type: "navigate", tab: "home" })}
+        className="flex items-center gap-3 rounded-sm"
+        aria-label="Westpac WallaTrack home"
+      >
+        <WestpacLogo className="h-[21px] w-auto" title={null} />
+        <span className="h-5 w-px bg-line" aria-hidden="true" />
+        <span className="font-brand text-[16px] text-navy">WallaTrack</span>
+      </button>
+      <div className="flex items-center gap-2">
+        <button
+          onClick={() => dispatch({ type: "navigate", tab: "pay" })}
+          className="relative grid size-9 place-items-center rounded-full text-navy hover:bg-navy-faint"
+          aria-label={
+            pending ? `Notifications: ${pending} payments awaiting approval` : "Notifications"
+          }
+        >
+          <NotificationIcon className="size-[22px]" />
+          {pending > 0 && (
+            <span className="absolute top-1.5 right-1.5 size-2.5 rounded-full border-2 border-white bg-hero" />
+          )}
+        </button>
+        <span
+          className="grid size-8 place-items-center rounded-full bg-navy text-[12px] font-bold text-white"
+          aria-label={PERSONA.name}
+        >
+          {PERSONA.initials}
+        </span>
+      </div>
+    </header>
+  );
+}
+
+const NAV: { tab: Tab; label: string; icon: IconComponent; active: IconComponent }[] = [
+  { tab: "home", label: "Home", icon: HouseIcon, active: HouseFilledIcon },
+  { tab: "account", label: "Account", icon: WalletIcon, active: WalletFilledIcon },
+  { tab: "pay", label: "Pay", icon: PayIcon, active: PayFilledIcon },
+  { tab: "goal", label: "Goal", icon: TargetIcon, active: TargetFilledIcon },
 ];
 
 export function BottomNav() {
   const { state, dispatch } = useStore();
+  const pending = usePending().length;
   return (
     <nav
-      className="relative z-30 shrink-0 border-t border-black/[0.06] bg-white/95 pb-[22px] backdrop-blur"
+      className="relative z-30 shrink-0 border-t border-line bg-white pb-[22px]"
       aria-label="Main"
     >
       <ul className="grid grid-cols-4">
-        {NAV.map(({ tab, label, icon: Icon }) => {
+        {NAV.map(({ tab, label, icon, active: activeIcon }) => {
           const active = state.tab === tab;
+          const Icon = active ? activeIcon : icon;
+          const badge = tab === "pay" && pending > 0 ? pending : 0;
           return (
             <li key={tab}>
               <button
                 onClick={() => dispatch({ type: "navigate", tab })}
                 className={cx(
-                  "relative flex h-[58px] w-full flex-col items-center justify-center gap-1 text-[11.5px] font-semibold transition-colors",
-                  active ? "text-hero" : "text-muted hover:text-ink",
+                  "relative flex h-[58px] w-full flex-col items-center justify-center gap-1 text-[12px] transition-colors",
+                  active ? "text-hero" : "text-muted hover:text-navy",
                 )}
                 aria-current={active ? "page" : undefined}
+                aria-label={badge ? `${label}, ${badge} pending` : undefined}
               >
                 {active && (
                   <motion.span
                     layoutId="nav-indicator"
-                    className="absolute top-0 h-[3px] w-8 rounded-b-full bg-hero"
+                    className="absolute top-0 h-[3px] w-10 bg-hero"
                     transition={{ type: "spring", stiffness: 500, damping: 40 }}
                   />
                 )}
-                <Icon className="size-[22px]" strokeWidth={active ? 2.3 : 1.9} />
+                <span className="relative">
+                  <Icon className="size-6" />
+                  {badge > 0 && (
+                    <span className="absolute -top-1.5 -right-2.5 grid h-[18px] min-w-[18px] place-items-center rounded-full border-2 border-white bg-hero px-1 text-[10.5px] leading-none font-bold text-white tabular">
+                      {badge}
+                    </span>
+                  )}
+                </span>
                 {label}
               </button>
             </li>

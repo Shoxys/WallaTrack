@@ -82,8 +82,8 @@ export function InsightsScreen() {
         <Card className="p-5">
           <div className="flex items-start justify-between">
             <div>
-              <p className="text-[13px] font-semibold text-muted">Saving for</p>
-              <p className="text-[30px] leading-tight font-extrabold tracking-[-0.03em] tabular">
+              <p className="text-[13px] text-muted">Saving for</p>
+              <p className="text-[30px] leading-tight font-bold tabular">
                 {fmtMoney(goal.amountCents, { cents: false })}
               </p>
             </div>
@@ -104,19 +104,19 @@ export function InsightsScreen() {
             <span>Target {fmtDay(goal.targetDay)}</span>
           </div>
 
-          <p className="mt-5 text-[17px] leading-[1.45] font-medium tracking-[-0.01em] text-ink">
-            Projected to hit your goal by <b className="font-extrabold">{fmtDay(p.youDay)}</b>{" "}
+          <p className="mt-5 text-[17px] leading-[1.45] font-medium text-ink">
+            Projected to hit your goal by <b className="font-bold">{fmtDay(p.youDay)}</b>{" "}
             {plan ? `with your ${plan.name} plan` : "at your current pace"}.{" "}
             {behind ? (
               <>
                 That’s about{" "}
-                <b className="font-extrabold text-amber">{fmtSpan(p.vsTargetDays)} behind</b> your{" "}
+                <b className="font-bold text-amber">{fmtSpan(p.vsTargetDays)} behind</b> your{" "}
                 {fmtDay(goal.targetDay)} target.
               </>
             ) : (
               <>
                 That’s{" "}
-                <b className="font-extrabold text-success">
+                <b className="font-bold text-success">
                   {p.vsTargetDays === 0 ? "right on" : `${fmtSpan(p.vsTargetDays)} ahead of`}
                 </b>{" "}
                 your {fmtDay(goal.targetDay)} target.
@@ -124,7 +124,7 @@ export function InsightsScreen() {
             )}
           </p>
 
-          <dl className="mt-4 grid grid-cols-3 divide-x divide-black/[0.06] rounded-2xl bg-canvas py-3">
+          <dl className="mt-4 grid grid-cols-3 divide-x divide-line rounded-lg border border-line bg-canvas-faint py-3">
             <Stat label="Your pace" value={`${fmtMoney(pace)}`} sub="/wk" />
             <Stat label="Needed" value={fmtMoney(Math.max(0, needed))} sub="/wk" />
             <Stat
@@ -136,7 +136,7 @@ export function InsightsScreen() {
           </dl>
           <button
             onClick={() => dispatch({ type: "goalView", view: "timeline" })}
-            className="mt-4 inline-flex items-center gap-1.5 text-[13.5px] font-semibold text-hero hover:underline"
+            className="mt-4 inline-flex items-center gap-1.5 text-[14px] text-hero hover:underline"
           >
             See the race to {fmtDay(p.youDay)}
             <ArrowRight className="size-4" />
@@ -156,7 +156,7 @@ export function InsightsScreen() {
                   key={b.category}
                   style={{
                     width: `${(b.cents / SUMMARY.inCents) * 100}%`,
-                    background: CATEGORIES[b.category].color,
+                    background: CATEGORIES[b.category].chart,
                   }}
                   className="border-r-2 border-white last:border-r-0"
                 />
@@ -175,7 +175,7 @@ export function InsightsScreen() {
                   <span className="flex min-w-0 items-center gap-1.5">
                     <span
                       className="size-2 shrink-0 rounded-full"
-                      style={{ background: CATEGORIES[b.category].color }}
+                      style={{ background: CATEGORIES[b.category].chart }}
                     />
                     <span className="truncate text-muted">{CATEGORIES[b.category].label}</span>
                   </span>
@@ -296,7 +296,7 @@ function Stat({
   return (
     <div className="px-3 text-center">
       <dt className="text-[11.5px] font-medium text-muted">{label}</dt>
-      <dd className={cx("mt-0.5 text-[15px] font-extrabold tabular", tone)}>
+      <dd className={cx("mt-0.5 text-[15px] font-bold tabular", tone)}>
         {value}
         {sub && <span className="text-[11px] font-semibold text-faint">{sub}</span>}
       </dd>
@@ -313,13 +313,16 @@ function HabitTile({ habit }: { habit: Habit }) {
       onClick={() => dispatch({ type: "openHabit", id: habit.id })}
       className={cx(
         cardClass,
-        "flex flex-col items-start p-3 text-left transition-transform hover:-translate-y-0.5",
-        good ? "ring-2 ring-success/35" : "ring-2 ring-danger/30",
+        "relative flex flex-col items-start overflow-hidden p-3 pt-4 text-left transition-colors hover:bg-canvas-faint",
       )}
     >
       <span
+        className={cx("absolute inset-x-0 top-0 h-1", good ? "bg-success" : "bg-danger")}
+        aria-hidden="true"
+      />
+      <span
         className={cx(
-          "grid size-8 place-items-center rounded-[10px]",
+          "grid size-8 place-items-center rounded-full",
           good ? "bg-success-tint text-success" : "bg-danger-tint text-danger",
         )}
       >
@@ -331,7 +334,7 @@ function HabitTile({ habit }: { habit: Habit }) {
       <p className="text-[13px] leading-tight font-bold">{habit.title}</p>
       <p
         className={cx(
-          "mt-1.5 text-[14px] font-extrabold tabular",
+          "mt-1.5 text-[14px] font-bold tabular",
           good ? "text-success" : "text-danger",
         )}
       >

@@ -1,13 +1,15 @@
 import { AnimatePresence, motion } from "motion/react";
-import { ChevronLeft, Info, X } from "lucide-react";
+import { ChevronLeft, X } from "lucide-react";
 import { useId, type ButtonHTMLAttributes, type HTMLAttributes, type ReactNode } from "react";
 import { CATEGORIES, type Category } from "@/data/persona";
+import { ErrorIcon, InfoIcon, SuccessIcon, WarningIcon } from "./GelIcons";
 
 export function cx(...parts: (string | false | null | undefined)[]) {
   return parts.filter(Boolean).join(" ");
 }
 
-type ButtonVariant = "primary" | "hero" | "outline" | "ghost" | "soft";
+/** Mirrors GEL Button looks: primary (red), hero (navy), their soft variants, and faint. */
+type ButtonLook = "primary" | "hero" | "primarySoft" | "heroSoft" | "faint" | "link";
 
 export function Button({
   variant = "primary",
@@ -16,27 +18,28 @@ export function Button({
   children,
   ...rest
 }: ButtonHTMLAttributes<HTMLButtonElement> & {
-  variant?: ButtonVariant;
+  variant?: ButtonLook;
   size?: "sm" | "md" | "lg";
 }) {
-  const variants: Record<ButtonVariant, string> = {
-    primary: "bg-navy text-white hover:bg-navy-deep active:bg-navy-deep",
-    hero: "bg-hero text-white hover:bg-hero-deep active:bg-hero-deep",
-    outline:
-      "bg-white text-navy ring-1 ring-inset ring-navy/25 hover:ring-navy/50 hover:bg-navy/[0.03]",
-    ghost: "text-navy hover:bg-navy/5",
-    soft: "bg-navy/[0.06] text-navy hover:bg-navy/10",
+  const looks: Record<ButtonLook, string> = {
+    primary: "border-hero bg-hero text-white hover:bg-hero-hover hover:border-hero-hover",
+    hero: "border-navy bg-navy text-white hover:bg-navy-hover hover:border-navy-hover",
+    primarySoft: "border-hero bg-white text-ink hover:bg-hero-faint",
+    heroSoft: "border-navy bg-white text-ink hover:bg-navy-faint",
+    faint: "border-line-strong bg-canvas text-muted hover:bg-white",
+    link: "border-transparent text-hero hover:underline",
   };
+  // GEL sizes: medium 36px / 4px, large 42px / 5px, xlarge 48px / 6px
   const sizes = {
-    sm: "h-9 px-3.5 text-[13px] rounded-xl",
-    md: "h-12 px-5 text-[15px] rounded-2xl",
-    lg: "h-14 px-6 text-base rounded-2xl",
+    sm: "h-9 px-3 text-[14px] rounded-[4px]",
+    md: "h-[42px] px-4 text-[15px] rounded-[5px]",
+    lg: "h-12 px-5 text-[16px] rounded-[6px]",
   };
   return (
     <button
       className={cx(
-        "inline-flex items-center justify-center gap-2 font-semibold transition-colors duration-150 outline-none focus-visible:ring-2 focus-visible:ring-hero focus-visible:ring-offset-2 disabled:opacity-40",
-        variants[variant],
+        "inline-flex items-center justify-center gap-2 border font-medium transition-[background,border-color] duration-300 disabled:pointer-events-none disabled:opacity-50",
+        looks[variant],
         sizes[size],
         className,
       )}
@@ -47,8 +50,7 @@ export function Button({
   );
 }
 
-export const cardClass =
-  "rounded-[22px] bg-white ring-1 ring-black/[0.05] shadow-[0_1px_2px_rgb(24_27_37/0.04)]";
+export const cardClass = "rounded-xl border border-line bg-white";
 
 export function Card({ className, children, ...rest }: HTMLAttributes<HTMLDivElement>) {
   return (
@@ -69,7 +71,7 @@ export function SectionTitle({
 }) {
   return (
     <div className={cx("flex items-end justify-between px-1", className)}>
-      <h2 className="text-[15px] font-bold tracking-[-0.01em] text-ink">{children}</h2>
+      <h2 className="text-[16px] font-bold text-navy">{children}</h2>
       {action}
     </div>
   );
@@ -87,22 +89,20 @@ export function ScreenHeader({
   right?: ReactNode;
 }) {
   return (
-    <header className="flex items-start justify-between gap-3 px-5 pt-2 pb-4">
+    <header className="flex items-start justify-between gap-3 px-5 pt-4 pb-4">
       <div className="flex min-w-0 items-start gap-2">
         {onBack && (
           <button
             onClick={onBack}
-            className="-ml-2 mt-0.5 grid size-9 place-items-center rounded-full text-navy hover:bg-navy/5"
+            className="-ml-2 grid size-9 place-items-center rounded-full text-navy hover:bg-navy-faint"
             aria-label="Back"
           >
             <ChevronLeft className="size-5" />
           </button>
         )}
         <div className="min-w-0">
-          <h1 className="text-[26px] leading-tight font-extrabold tracking-[-0.025em] text-ink">
-            {title}
-          </h1>
-          {subtitle && <p className="mt-0.5 text-[13px] text-muted">{subtitle}</p>}
+          <h1 className="font-brand text-[28px] leading-[1.15] text-navy">{title}</h1>
+          {subtitle && <p className="mt-1 text-[14px] text-muted">{subtitle}</p>}
         </div>
       </div>
       {right}
@@ -110,7 +110,43 @@ export function ScreenHeader({
   );
 }
 
+/** GEL ButtonGroup: joined hero buttons, selected one filled. */
 export function Segmented<T extends string>({
+  value,
+  options,
+  onChange,
+  label,
+}: {
+  value: T;
+  options: { value: T; label: string }[];
+  onChange: (v: T) => void;
+  label?: string;
+}) {
+  return (
+    <div className="flex" role="radiogroup" aria-label={label}>
+      {options.map((o) => {
+        const active = o.value === value;
+        return (
+          <button
+            key={o.value}
+            role="radio"
+            aria-checked={active}
+            onClick={() => onChange(o.value)}
+            className={cx(
+              "h-10 flex-1 border border-navy text-[14.5px] transition-colors duration-300 first:rounded-l-[5px] last:rounded-r-[5px] not-first:border-l-0",
+              active ? "bg-navy text-white" : "bg-white text-ink hover:bg-navy-faint",
+            )}
+          >
+            {o.label}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+/** GEL Tabs, "material" look: dividers between tabs and a 4px primary underline. */
+export function Tabs<T extends string>({
   value,
   options,
   onChange,
@@ -121,10 +157,7 @@ export function Segmented<T extends string>({
 }) {
   const id = useId();
   return (
-    <div
-      className="relative grid grid-flow-col auto-cols-fr rounded-2xl bg-navy/[0.06] p-1"
-      role="tablist"
-    >
+    <div className="flex border-y border-line bg-white" role="tablist">
       {options.map((o) => {
         const active = o.value === value;
         return (
@@ -134,18 +167,18 @@ export function Segmented<T extends string>({
             aria-selected={active}
             onClick={() => onChange(o.value)}
             className={cx(
-              "relative h-9 rounded-xl text-[14px] font-semibold transition-colors",
-              active ? "text-navy" : "text-muted hover:text-ink",
+              "relative h-12 flex-1 border-r border-line text-[16px] transition-colors last:border-r-0",
+              active ? "text-ink" : "text-muted hover:bg-canvas",
             )}
           >
+            {o.label}
             {active && (
               <motion.span
-                layoutId={`segmented-${id}`}
-                className="absolute inset-0 rounded-xl bg-white shadow-[0_1px_3px_rgb(24_27_37/0.12)]"
-                transition={{ type: "spring", stiffness: 500, damping: 38 }}
+                layoutId={`tab-${id}`}
+                className="absolute inset-x-0 -bottom-px h-1 bg-hero"
+                transition={{ type: "spring", stiffness: 500, damping: 40 }}
               />
             )}
-            <span className="relative">{o.label}</span>
           </button>
         );
       })}
@@ -160,42 +193,41 @@ export function CategoryIcon({
   category: Category;
   size?: "sm" | "md" | "lg";
 }) {
-  const c = CATEGORIES[category];
-  const Icon = c.icon;
-  const dims = { sm: "size-8 rounded-[10px]", md: "size-10 rounded-xl", lg: "size-12 rounded-2xl" }[
-    size
-  ];
-  const icon = { sm: "size-4", md: "size-[18px]", lg: "size-5" }[size];
+  const { icon: Icon, color, tint } = CATEGORIES[category];
+  const dims = { sm: "size-8", md: "size-10", lg: "size-12" }[size];
+  const icon = { sm: "size-4", md: "size-5", lg: "size-6" }[size];
   return (
     <span
-      className={cx("grid shrink-0 place-items-center", dims)}
-      style={{ background: c.tint, color: c.color }}
+      className={cx("grid shrink-0 place-items-center rounded-full", dims)}
+      style={{ background: tint, color }}
     >
-      <Icon className={icon} strokeWidth={2.2} />
+      <Icon className={icon} />
     </span>
   );
 }
 
+/** GEL soft pill Badge. */
 export function Pill({
   tone = "neutral",
   children,
   className,
 }: {
-  tone?: "neutral" | "good" | "bad" | "warn" | "navy";
+  tone?: "neutral" | "good" | "bad" | "warn" | "info" | "navy";
   children: ReactNode;
   className?: string;
 }) {
   const tones = {
-    neutral: "bg-navy/[0.06] text-muted",
-    good: "bg-success-tint text-success",
-    bad: "bg-danger-tint text-danger",
-    warn: "bg-amber-tint text-amber",
-    navy: "bg-navy text-white",
+    neutral: "border-line bg-canvas-faint text-muted",
+    good: "border-success/60 bg-success-tint text-success",
+    bad: "border-danger/60 bg-danger-tint text-danger",
+    warn: "border-amber/60 bg-amber-tint text-amber",
+    info: "border-info/60 bg-info-tint text-info",
+    navy: "border-navy bg-navy text-white",
   };
   return (
     <span
       className={cx(
-        "inline-flex h-6 items-center gap-1 rounded-full px-2.5 text-[12px] font-semibold whitespace-nowrap",
+        "inline-flex h-6 items-center gap-1 rounded-full border px-2 text-[12.5px] font-medium whitespace-nowrap",
         tones[tone],
         className,
       )}
@@ -207,10 +239,60 @@ export function Pill({
 
 export function Notice({ children }: { children: ReactNode }) {
   return (
-    <p className="flex gap-2 px-1 text-[11.5px] leading-snug text-faint">
-      <Info className="mt-px size-3.5 shrink-0" />
+    <p className="flex gap-2 px-1 text-[12px] leading-snug text-muted">
+      <InfoIcon className="mt-px size-4 shrink-0 text-info" />
       <span>{children}</span>
     </p>
+  );
+}
+
+const ALERT_LOOKS = {
+  info: { cls: "border-info/40 bg-info-tint text-info", Icon: InfoIcon },
+  success: { cls: "border-success/40 bg-success-tint text-success", Icon: SuccessIcon },
+  warning: { cls: "border-amber/40 bg-amber-tint text-amber", Icon: WarningIcon },
+  danger: { cls: "border-danger/40 bg-danger-tint text-danger", Icon: ErrorIcon },
+};
+
+/** GEL Alert, box mode: reserved colours, top and bottom rule, leading icon. */
+export function Alert({
+  look = "info",
+  heading,
+  children,
+  className,
+  onClose,
+}: {
+  look?: keyof typeof ALERT_LOOKS;
+  heading?: ReactNode;
+  children: ReactNode;
+  className?: string;
+  onClose?: () => void;
+}) {
+  const { cls, Icon } = ALERT_LOOKS[look];
+  return (
+    <div
+      role={look === "danger" ? "alert" : "status"}
+      className={cx(
+        "relative flex gap-2.5 border-y px-3.5 py-3",
+        cls,
+        onClose && "pr-10",
+        className,
+      )}
+    >
+      <Icon className="mt-px size-5 shrink-0" />
+      <div className="min-w-0 text-[13.5px] leading-snug">
+        {heading && <p className="mb-0.5 text-[14.5px] font-bold">{heading}</p>}
+        {children}
+      </div>
+      {onClose && (
+        <button
+          onClick={onClose}
+          className="absolute top-2 right-2 grid size-8 place-items-center rounded-full hover:bg-black/5"
+          aria-label="Dismiss"
+        >
+          <X className="size-4" />
+        </button>
+      )}
+    </div>
   );
 }
 
@@ -239,7 +321,7 @@ export function Sheet({
           transition={{ duration: 0.2 }}
         >
           <button
-            className="absolute inset-0 bg-[#0d0b26]/45 backdrop-blur-[2px]"
+            className="absolute inset-0 bg-navy-deep/50"
             onClick={onClose}
             aria-label="Close"
           />
@@ -247,7 +329,7 @@ export function Sheet({
             role="dialog"
             aria-label={label}
             className={cx(
-              "relative flex flex-col rounded-t-[30px] bg-canvas shadow-[0_-12px_40px_rgb(13_11_38/0.25)]",
+              "relative flex flex-col rounded-t-2xl bg-canvas shadow-[0_-8px_30px_rgb(19_15_72/0.25)]",
               tall ? "max-h-[calc(100%-24px)]" : "max-h-[calc(100%-56px)]",
             )}
             initial={{ y: "100%" }}
@@ -255,10 +337,10 @@ export function Sheet({
             exit={{ y: "100%" }}
             transition={{ type: "spring", stiffness: 380, damping: 38 }}
           >
-            <div className="mx-auto mt-2.5 h-1 w-10 shrink-0 rounded-full bg-black/15" />
+            <div className="mx-auto mt-2.5 h-1 w-10 shrink-0 rounded-full bg-line-strong/50" />
             <button
               onClick={onClose}
-              className="absolute top-3 right-3 z-10 grid size-9 place-items-center rounded-full bg-white text-navy shadow-sm ring-1 ring-black/5 hover:bg-canvas"
+              className="absolute top-3 right-3 z-10 grid size-9 place-items-center rounded-full border border-line bg-white text-navy hover:bg-navy-faint"
               aria-label="Dismiss"
             >
               <X className="size-4.5" />
@@ -271,11 +353,12 @@ export function Sheet({
   );
 }
 
+/** GEL ProgressBar, skinny look: bordered white track with a hero bar. */
 export function ProgressBar({
   value,
   className,
-  barClass = "bg-hero",
-  trackClass = "bg-navy/10",
+  barClass = "bg-navy",
+  trackClass = "border border-line bg-white p-px",
 }: {
   value: number;
   className?: string;
@@ -283,7 +366,7 @@ export function ProgressBar({
   trackClass?: string;
 }) {
   return (
-    <div className={cx("h-2 overflow-hidden rounded-full", trackClass, className)}>
+    <div className={cx("h-2.5 overflow-hidden rounded-full", trackClass, className)}>
       <motion.div
         className={cx("h-full rounded-full", barClass)}
         initial={false}

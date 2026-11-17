@@ -1,26 +1,55 @@
-@import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Pixelify+Sans:wght@500;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@500;600;700&display=swap");
 @import "tailwindcss";
 
+/* Westpac brand font, from the GEL design system (github.com/WestpacGEL/GEL-next). Headings only. */
+@font-face {
+  font-family: "Westpac";
+  src: url("./assets/fonts/Westpac-Bold-v2.007.woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Tokens mirror GEL's WBC theme (packages/style-config/src/css/themes/theme-wbc.css). */
 @theme {
-  --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+  /* GEL body font is the platform system stack; the Westpac face is reserved for brand headings. */
+  --font-sans:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif,
+    "Apple Color Emoji", "Segoe UI Emoji";
+  --font-brand:
+    "Westpac", -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
   --font-pixel: "Pixelify Sans", ui-monospace, monospace;
 
-  /* Westpac GEL-inspired palette */
+  /* hero-500 / primary-500 and their GEL hover + deep shades */
   --color-navy: #1f1c4f;
-  --color-navy-deep: #15123a;
+  --color-navy-hover: #423c97;
+  --color-navy-deep: #130f48;
+  --color-navy-faint: #f1f0fa;
+  --color-navy-soft: #e2e1f4;
   --color-hero: #da1710;
-  --color-hero-deep: #a50f0a;
-  --color-ink: #181b25;
-  --color-muted: #575f65;
-  --color-faint: #8a8f98;
-  --color-line: #e4e4ea;
-  --color-canvas: #f3f4f6;
-  --color-success: #008a23;
-  --color-success-tint: #e3f4e7;
-  --color-danger: #c80038;
-  --color-danger-tint: #fbe5ec;
-  --color-amber: #a85b00;
-  --color-amber-tint: #fdf0dc;
+  --color-hero-hover: #ee221b;
+  --color-hero-deep: #99100b;
+  --color-hero-faint: #fff0f0;
+
+  /* muted scale */
+  --color-ink: #161619;
+  --color-muted: #706f7c;
+  --color-faint: #8e8d98;
+  --color-line: #dedee1;
+  --color-line-strong: #8e8d98;
+  --color-canvas: #f5f5f6;
+  --color-canvas-faint: #f9f9fa;
+
+  /* GEL reserved (cross-brand) colours */
+  --color-success: #008000;
+  --color-success-tint: #f2f9f2;
+  --color-info: #0074c4;
+  --color-info-tint: #f2f8fc;
+  --color-amber: #c53b00;
+  --color-amber-tint: #fcf5f2;
+  --color-danger: #c40000;
+  --color-danger-tint: #fcf2f2;
+  --color-focus: #bc57eb;
 }
 
 @layer base {
@@ -35,6 +64,11 @@
   }
   button:disabled {
     cursor: default;
+  }
+  /* GEL focus-outline */
+  :focus-visible {
+    outline: 2px solid var(--color-focus);
+    outline-offset: 3px;
   }
 }
 
@@ -245,7 +279,7 @@
   height: 18px;
   border-radius: 9999px;
   background: #fff;
-  border: 4px solid #ff4d42;
+  border: 4px solid #f1423c;
   box-shadow: 0 1px 4px rgb(0 0 0 / 0.35);
 }
 .wt-range::-moz-range-thumb {
@@ -253,7 +287,7 @@
   height: 12px;
   border-radius: 9999px;
   background: #fff;
-  border: 4px solid #ff4d42;
+  border: 4px solid #f1423c;
 }
 .wt-range::-webkit-slider-runnable-track {
   height: 18px;

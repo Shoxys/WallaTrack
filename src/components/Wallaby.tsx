@@ -267,7 +267,7 @@ export function Navigator({
         )}
       </div>
       {mood === "thinking" && (
-        <span className="absolute -top-1 right-0 flex gap-1 rounded-full bg-white px-2 py-1.5 shadow-sm ring-1 ring-black/5">
+        <span className="absolute -top-1 right-0 flex gap-1 rounded-full bg-white px-2 py-1.5 shadow-sm border border-line">
           {[0, 1, 2].map((i) => (
             <span
               key={i}

@@ -92,7 +92,7 @@ function HabitDetail({ id }: { id: HabitId }) {
       <div className="flex items-center gap-3 pr-10">
         <span
           className={cx(
-            "grid size-12 place-items-center rounded-2xl",
+            "grid size-12 place-items-center rounded-full",
             good ? "bg-success-tint text-success" : "bg-danger-tint text-danger",
           )}
         >
@@ -102,9 +102,7 @@ function HabitDetail({ id }: { id: HabitId }) {
           <p className={cx("text-[12.5px] font-semibold", good ? "text-success" : "text-danger")}>
             {good ? "Good habit" : habit.top ? "Top habit" : "Habit to watch"}
           </p>
-          <h2 className="text-[21px] leading-tight font-extrabold tracking-[-0.02em]">
-            {habit.title}
-          </h2>
+          <h2 className="font-brand text-[22px] leading-tight text-navy">{habit.title}</h2>
         </div>
       </div>
 
@@ -115,7 +113,7 @@ function HabitDetail({ id }: { id: HabitId }) {
           <p className="text-[12.5px] font-semibold text-muted">{habit.barsLabel}</p>
           <p
             className={cx(
-              "shrink-0 text-[18px] font-extrabold whitespace-nowrap tabular",
+              "shrink-0 text-[18px] font-bold whitespace-nowrap tabular",
               good ? "text-success" : "text-danger",
             )}
           >
@@ -152,19 +150,19 @@ function HabitDetail({ id }: { id: HabitId }) {
 
       <dl className="grid grid-cols-3 gap-2">
         {habit.facts.map((f) => (
-          <div key={f.label} className="rounded-2xl bg-white px-3 py-2.5 ring-1 ring-black/5">
+          <div key={f.label} className="rounded-lg bg-white px-3 py-2.5 border border-line">
             <dt className="text-[11px] font-medium text-muted">{f.label}</dt>
-            <dd className="mt-0.5 text-[15px] font-extrabold tabular">{f.value}</dd>
+            <dd className="mt-0.5 text-[15px] font-bold tabular">{f.value}</dd>
           </div>
         ))}
       </dl>
 
-      <div className="rounded-2xl bg-navy p-4 text-white">
+      <div className="rounded-lg bg-navy p-4 text-white">
         <p className="text-[12px] font-semibold text-white/60">Goal impact</p>
-        <p className="mt-1 text-[14px] leading-snug [&_b]:font-extrabold">{impact.text}</p>
+        <p className="mt-1 text-[14px] leading-snug [&_b]:font-bold">{impact.text}</p>
       </div>
 
-      <Button variant="outline" className="w-full" onClick={impact.go}>
+      <Button variant="heroSoft" className="w-full" onClick={impact.go}>
         {impact.cta}
         <ArrowRight className="size-4" />
       </Button>

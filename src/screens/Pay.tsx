@@ -1,9 +1,21 @@
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
-import { ArrowRight, Check, ChevronRight, Hand, Nfc, Repeat, Target } from "lucide-react";
-import { Button, Card, CategoryIcon, Notice, ScreenHeader, Sheet, cx } from "@/components/ui";
+import { ArrowRight, Check, ChevronRight, Repeat, Target } from "lucide-react";
+import {
+  Alert,
+  Button,
+  Card,
+  CategoryIcon,
+  Notice,
+  Pill,
+  ScreenHeader,
+  SectionTitle,
+  Sheet,
+  cx,
+} from "@/components/ui";
+import { PendingIcon, TickCircleIcon } from "@/components/GelIcons";
 import { Navigator, type NavigatorMood } from "@/components/Wallaby";
-import { CATEGORIES, DEMO_PURCHASES, PERSONA, type Purchase } from "@/data/persona";
+import { CATEGORIES, PERSONA, type Purchase } from "@/data/persona";
 import {
   PLANS,
   fmtDay,
@@ -14,145 +26,145 @@ import {
   youArrivalDay,
   youPaceCents,
 } from "@/engine/engine";
-import { useStore, type Decision } from "@/state/store";
+import { usePending, useStore, type Decision } from "@/state/store";
+
+const inputClass =
+  "h-12 w-full min-w-0 rounded-[5px] border border-line-strong bg-white px-3.5 text-[16px] text-ink placeholder:text-muted/70";
 
 export function PayScreen() {
-  const { state, dispatch } = useStore();
-  const [holding, setHolding] = useState<string | null>(null);
+  const { dispatch } = useStore();
+  const pending = usePending();
   const [wiName, setWiName] = useState("New laptop");
   const [wiAmount, setWiAmount] = useState("1,800");
-  const held =
-    state.check && !state.check.open && !state.check.decisionId ? state.check.purchase : null;
-
-  const pay = (purchase: Purchase) => {
-    setHolding(purchase.id);
-    setTimeout(
-      () => {
-        setHolding(null);
-        dispatch({ type: "startCheck", purchase });
-      },
-      state.calm ? 150 : 650,
-    );
-  };
-
   const wiCents = (Number(wiAmount.replace(/[^\d.]/g, "")) || 0) * 100;
 
   return (
     <div className="pb-8">
       <ScreenHeader
         title="Pay"
-        subtitle={`Debit card ending ${PERSONA.account.card} · demo checkout`}
+        subtitle={`${PERSONA.account.name} · card ending ${PERSONA.account.card}`}
       />
-      <div className="space-y-5 px-5">
-        <AnimatePresence>
-          {held && (
-            <motion.button
-              initial={{ opacity: 0, y: -6 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -6 }}
-              onClick={() => dispatch({ type: "reopenCheck" })}
-              className="flex w-full items-center gap-3 rounded-[20px] bg-amber-tint p-3.5 text-left ring-1 ring-amber/15"
-            >
-              <Hand className="size-5 shrink-0 text-amber" />
-              <span className="min-w-0 flex-1 text-[13px] leading-snug">
-                <b>{held.item}</b> ({fmtMoney(held.amountCents)}) is on hold until you approve or
-                decline it.
-              </span>
-              <ChevronRight className="size-5 shrink-0 text-amber" />
-            </motion.button>
-          )}
-        </AnimatePresence>
-
+      <div className="space-y-6 px-5">
         <section className="space-y-2.5">
-          <h2 className="px-1 text-[15px] font-bold">Ready at checkout</h2>
-          {DEMO_PURCHASES.map((p) => {
-            const isHolding = holding === p.id;
-            return (
-              <Card key={p.id} className="p-4">
-                <div className="flex items-center gap-3">
-                  <CategoryIcon category={p.category} size="lg" />
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-[15px] font-bold">{p.merchant}</p>
-                    <p className="truncate text-[13px] text-muted">{p.item}</p>
-                  </div>
-                  <p className="text-[17px] font-extrabold tabular">{fmtMoney(p.amountCents)}</p>
-                </div>
+          <SectionTitle
+            action={
+              pending.length > 0 && <Pill tone="warn">{pending.length} awaiting approval</Pill>
+            }
+          >
+            Pending transactions
+          </SectionTitle>
+          <p className="px-1 text-[13.5px] leading-snug text-muted">
+            Online card purchases over $100, or linked to a habit you track, wait here. Approve to
+            settle the payment, or decline to cancel it.
+          </p>
+
+          {pending.length > 0 ? (
+            <Card className="divide-y divide-line overflow-hidden">
+              {pending.map((p) => (
                 <button
-                  onClick={() => pay(p)}
-                  disabled={!!holding}
-                  className={cx(
-                    "mt-3 flex h-11 w-full items-center justify-center gap-2 rounded-xl text-[14px] font-semibold transition-colors",
-                    isHolding ? "bg-navy text-white" : "bg-navy/[0.06] text-navy hover:bg-navy/10",
-                  )}
+                  key={p.id}
+                  onClick={() => dispatch({ type: "startCheck", purchase: p })}
+                  className="grid w-full grid-cols-[auto_1fr_auto] gap-x-3 px-4 py-3.5 text-left transition-colors hover:bg-canvas-faint"
                 >
-                  {isHolding ? (
-                    <>
-                      <span className="size-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                      Holding payment…
-                    </>
-                  ) : (
-                    <>
-                      <Nfc className="size-[18px]" />
-                      Tap to pay {fmtMoney(p.amountCents)}
-                    </>
-                  )}
+                  <span className="row-span-4">
+                    <CategoryIcon category={p.category} />
+                  </span>
+                  <p className="truncate text-[15px] font-bold text-ink">{p.merchant}</p>
+                  <span className="text-right text-[15px] font-bold tabular">
+                    {fmtMoney(-p.amountCents)}
+                  </span>
+                  <p className="truncate text-[13.5px] text-muted">{p.item}</p>
+                  <span className="inline-flex items-center justify-end text-[13.5px] text-hero">
+                    Review
+                    <ChevronRight className="size-4" />
+                  </span>
+                  <p className="col-span-2 mt-1.5 text-[12.5px] text-muted">
+                    <span className="font-medium" style={{ color: CATEGORIES[p.category].color }}>
+                      {CATEGORIES[p.category].label}
+                    </span>{" "}
+                    · Online · {p.placed}
+                  </p>
+                  <p className="col-span-2 mt-0.5 flex items-center gap-1.5 text-[12.5px] text-amber">
+                    <PendingIcon className="size-3.5 shrink-0" />
+                    Held: {p.heldBecause}
+                  </p>
                 </button>
-              </Card>
-            );
-          })}
+              ))}
+            </Card>
+          ) : (
+            <Card className="flex flex-col items-center px-5 py-6 text-center">
+              <TickCircleIcon className="size-8 text-success" />
+              <p className="mt-2 text-[15px] font-bold">You’re all caught up</p>
+              <p className="mt-0.5 text-[13.5px] text-muted">
+                No online purchases are waiting for approval.
+              </p>
+              <Button
+                variant="link"
+                size="sm"
+                className="mt-1"
+                onClick={() => dispatch({ type: "restorePending" })}
+              >
+                Restore demo transactions
+              </Button>
+            </Card>
+          )}
         </section>
 
         <section className="space-y-2.5">
-          <h2 className="px-1 text-[15px] font-bold">What if?</h2>
-          <Card className="p-4">
-            <p className="text-[13.5px] leading-snug text-muted">
-              Planning something bigger? Run the same goal check first. Nothing gets charged.
-            </p>
-            <div className="mt-3 grid grid-cols-[1fr_7.5rem] gap-2">
-              <input
-                value={wiName}
-                onChange={(e) => setWiName(e.target.value)}
-                placeholder="What is it?"
-                aria-label="Planned purchase"
-                className="h-12 min-w-0 rounded-xl bg-canvas px-3.5 text-[15px] font-semibold outline-none ring-1 ring-black/5 focus:ring-2 focus:ring-navy/40"
-              />
-              <div className="relative">
-                <span className="absolute top-1/2 left-3 -translate-y-1/2 text-[15px] font-semibold text-muted">
-                  $
-                </span>
+          <SectionTitle>What if?</SectionTitle>
+          <Card className="overflow-hidden">
+            <div className="p-4">
+              <p className="text-[13.5px] leading-snug text-muted">
+                Planning something bigger? Run the same goal check before you buy it.
+              </p>
+              <div className="mt-3 grid grid-cols-[1fr_7.5rem] gap-2">
                 <input
-                  value={wiAmount}
-                  onChange={(e) => setWiAmount(e.target.value)}
-                  inputMode="decimal"
-                  aria-label="Amount"
-                  className="h-12 w-full rounded-xl bg-canvas pr-3 pl-7 text-[15px] font-semibold outline-none ring-1 ring-black/5 tabular focus:ring-2 focus:ring-navy/40"
+                  value={wiName}
+                  onChange={(e) => setWiName(e.target.value)}
+                  placeholder="What is it?"
+                  aria-label="Planned purchase"
+                  className={inputClass}
                 />
+                <div className="relative">
+                  <span className="absolute top-1/2 left-3 -translate-y-1/2 text-[16px] text-muted">
+                    $
+                  </span>
+                  <input
+                    value={wiAmount}
+                    onChange={(e) => setWiAmount(e.target.value)}
+                    inputMode="decimal"
+                    aria-label="Amount"
+                    className={cx(inputClass, "pl-7 tabular")}
+                  />
+                </div>
               </div>
+              <Button
+                variant="heroSoft"
+                className="mt-3 w-full"
+                disabled={wiCents <= 0 || !wiName.trim()}
+                onClick={() =>
+                  dispatch({
+                    type: "startCheck",
+                    purchase: {
+                      id: `whatif-${Date.now()}`,
+                      merchant: "What-if",
+                      item: wiName.trim(),
+                      category: "shopping",
+                      amountCents: Math.round(wiCents),
+                      whatIf: true,
+                    },
+                  })
+                }
+              >
+                Check goal impact
+                <ArrowRight className="size-4" />
+              </Button>
             </div>
-            <Button
-              variant="outline"
-              className="mt-3 w-full"
-              disabled={wiCents <= 0 || !wiName.trim()}
-              onClick={() =>
-                dispatch({
-                  type: "startCheck",
-                  purchase: {
-                    id: `whatif-${Date.now()}`,
-                    merchant: "What-if",
-                    item: wiName.trim(),
-                    category: "shopping",
-                    amountCents: Math.round(wiCents),
-                    whatIf: true,
-                  },
-                })
-              }
-            >
-              Check goal impact
-              <ArrowRight className="size-4" />
-            </Button>
+            <Alert look="info" className="border-b-0">
+              This is a pretend purchase. No money moves and nothing is charged to your card.
+            </Alert>
           </Card>
         </section>
-        <Notice>Purchases here are simulated. No real money moves and no card is charged.</Notice>
       </div>
     </div>
   );
@@ -187,13 +199,20 @@ function ItemCard({ purchase }: { purchase: Purchase }) {
       <CategoryIcon category={purchase.category} size="lg" />
       <div className="min-w-0 flex-1">
         <p className="line-clamp-2 text-[15.5px] leading-tight font-bold">{purchase.item}</p>
-        <p className="mt-0.5 truncate text-[13px] font-semibold" style={{ color: cat.color }}>
-          {purchase.whatIf ? "What-if" : `${purchase.merchant} · ${cat.label}`}
+        <p className="mt-0.5 line-clamp-2 text-[13px] text-muted">
+          {purchase.whatIf ? (
+            "What-if purchase"
+          ) : (
+            <>
+              {purchase.merchant} ·{" "}
+              <span className="font-medium" style={{ color: cat.color }}>
+                {cat.label}
+              </span>
+            </>
+          )}
         </p>
       </div>
-      <p className="text-[19px] font-extrabold tracking-[-0.02em] tabular">
-        {fmtMoney(purchase.amountCents)}
-      </p>
+      <p className="text-[19px] font-bold tabular">{fmtMoney(purchase.amountCents)}</p>
     </Card>
   );
 }
@@ -203,7 +222,7 @@ function SpeechBubble({ children }: { children: React.ReactNode }) {
     <motion.div
       initial={{ opacity: 0, scale: 0.92, x: -6 }}
       animate={{ opacity: 1, scale: 1, x: 0 }}
-      className="relative rounded-2xl rounded-bl-md bg-white px-3.5 py-2.5 text-[13.5px] leading-snug font-semibold text-ink shadow-sm ring-1 ring-black/5"
+      className="relative rounded-xl rounded-bl-[3px] border border-line bg-white px-3.5 py-2.5 text-[13.5px] leading-snug font-medium text-ink"
     >
       {children}
     </motion.div>
@@ -238,29 +257,35 @@ function PurchaseReview({ purchase }: { purchase: Purchase }) {
               ? "Hold on — checking this against your goal…"
               : whatIf
                 ? `Here’s what ${purchase.item.toLowerCase()} would do to your goal.`
-                : `Quick goal check before you pay, ${PERSONA.firstName}.`}
+                : `Quick goal check before this settles, ${PERSONA.firstName}.`}
           </SpeechBubble>
         </div>
       </div>
 
       <div className="mt-3 space-y-3">
         <ItemCard purchase={purchase} />
+        {purchase.placed && (
+          <p className="-mt-1 flex items-center gap-1.5 px-1 text-[12.5px] text-muted">
+            <PendingIcon className="size-4 text-amber" />
+            Pending · placed {purchase.placed?.toLowerCase()} · {purchase.heldBecause}
+          </p>
+        )}
 
         <Card className="p-4">
-          <p className="text-[13px] font-semibold text-muted">How this impacts your goal</p>
+          <p className="text-[13px] font-bold text-navy">How this impacts your goal</p>
           {!ready ? (
             <div className="mt-3 space-y-2.5" aria-label="Checking">
               <div className="wt-shimmer h-4 w-[92%] rounded-md" />
               <div className="wt-shimmer h-4 w-[70%] rounded-md" />
               <div className="mt-4 grid grid-cols-[1fr_auto_1fr] items-center gap-2">
-                <div className="wt-shimmer h-[68px] rounded-2xl" />
+                <div className="wt-shimmer h-[68px] rounded-lg" />
                 <ArrowRight className="size-5 text-faint" />
-                <div className="wt-shimmer h-[68px] rounded-2xl" />
+                <div className="wt-shimmer h-[68px] rounded-lg" />
               </div>
             </div>
           ) : impact && goal ? (
             <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}>
-              <p className="mt-1.5 text-[17px] leading-snug font-bold tracking-[-0.01em]">
+              <p className="mt-1.5 text-[17px] leading-snug font-bold">
                 {impact.deltaDays === 0 ? (
                   <>This doesn’t move your {goal.reason.toLowerCase()} date.</>
                 ) : (
@@ -278,15 +303,10 @@ function PurchaseReview({ purchase }: { purchase: Purchase }) {
                   : `${Math.round(weeksOfSaving * 7)} days`}{" "}
                 of saving at {fmtMoney(youPaceCents(state.planId))}/wk.
               </p>
-              <span
-                className={cx(
-                  "mt-2.5 inline-flex h-7 items-center gap-1.5 rounded-full px-2.5 text-[12.5px] font-semibold",
-                  purchase.habitLink ? "bg-danger-tint text-danger" : "bg-navy/[0.06] text-muted",
-                )}
-              >
+              <Pill tone={purchase.habitLink ? "bad" : "neutral"} className="mt-2.5">
                 <Repeat className="size-3.5" />
                 {purchase.habitLink ?? "One-off purchase · not part of a habit"}
-              </span>
+              </Pill>
 
               <div className="mt-4 grid grid-cols-[1fr_auto_1fr] items-center gap-2">
                 <DateBox label="Now" day={impact.beforeDay} />
@@ -304,7 +324,7 @@ function PurchaseReview({ purchase }: { purchase: Purchase }) {
                 You haven’t set a goal yet, so there’s nothing to measure this against.
               </p>
               <Button
-                variant="soft"
+                variant="faint"
                 size="sm"
                 className="mt-3"
                 onClick={() => {
@@ -327,11 +347,11 @@ function PurchaseReview({ purchase }: { purchase: Purchase }) {
         <p className="mb-2.5 text-center text-[12px] text-muted">
           {whatIf
             ? "Nothing will be charged."
-            : "Payment held — nothing is charged until you choose."}
+            : "This payment won’t settle until you approve it. Declining cancels it."}
         </p>
         <div className="grid grid-cols-2 gap-2.5">
           <Button
-            variant="outline"
+            variant="primarySoft"
             size="lg"
             onClick={() => dispatch({ type: "decide", outcome: "declined" })}
           >
@@ -360,18 +380,18 @@ function DateBox({
   return (
     <div
       className={cx(
-        "rounded-2xl px-3 py-2.5 ring-1",
+        "rounded-lg border px-3 py-2.5",
         tone === "bad"
-          ? "bg-danger-tint/60 ring-danger/20"
+          ? "border-danger/40 bg-danger-tint"
           : tone === "good"
-            ? "bg-success-tint ring-success/20"
-            : "bg-canvas ring-black/5",
+            ? "border-success/40 bg-success-tint"
+            : "border-line bg-white",
       )}
     >
-      <p className="text-[11.5px] font-semibold text-muted">{label}</p>
+      <p className="text-[12px] text-muted">{label}</p>
       <p
         className={cx(
-          "text-[24px] leading-tight font-extrabold tracking-[-0.02em] tabular",
+          "text-[24px] leading-tight font-bold tabular",
           struck
             ? "text-faint line-through decoration-2"
             : tone === "bad"
@@ -440,14 +460,19 @@ function ResultBody({ decision }: { decision: Decision }) {
         <motion.h2
           initial={{ opacity: 0, y: 6 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mt-3 text-[24px] leading-tight font-extrabold tracking-[-0.025em]"
+          className="mt-3 font-brand text-[26px] leading-tight text-navy"
         >
           {title}
         </motion.h2>
+        {!whatIf && (
+          <Pill tone={approved ? "good" : "neutral"} className="mt-2">
+            {approved ? `Settled to ${PERSONA.account.name}` : "Cancelled · nothing was charged"}
+          </Pill>
+        )}
         <p className="mt-1 max-w-[300px] text-[14px] leading-snug text-muted">
           {!hasGoal
             ? approved && !whatIf
-              ? "Paid. Set a goal to see how purchases like this affect it."
+              ? "Set a goal to see how purchases like this affect it."
               : "Set a goal to see how decisions like this add up."
             : whatIf
               ? approved
@@ -456,7 +481,7 @@ function ResultBody({ decision }: { decision: Decision }) {
               : approved
                 ? delta > 0
                   ? `Your goal moved back ${fmtSpan(delta)}. You’ve been knocked back on the track.`
-                  : "Paid. This one doesn’t move your goal date."
+                  : "This one doesn’t move your goal date."
                 : delta > 0
                   ? `You kept ${fmtSpan(delta)} on your goal and stayed on pace.`
                   : "Cancelled. Your goal date is unchanged."}
@@ -490,7 +515,7 @@ function ResultBody({ decision }: { decision: Decision }) {
 
         {showReroutes && (
           <Card className="p-4">
-            <p className="text-[14.5px] font-bold">Win the time back</p>
+            <p className="text-[15px] font-bold text-navy">Win the time back</p>
             <p className="text-[12.5px] text-muted">
               Pick a reroute and You surges forward on the track.
             </p>
@@ -509,10 +534,10 @@ function ResultBody({ decision }: { decision: Decision }) {
                       })
                     }
                     className={cx(
-                      "flex w-full items-center gap-3 rounded-2xl px-3 py-2.5 text-left ring-1 transition-all",
+                      "flex w-full items-center gap-3 rounded-lg border px-3 py-2.5 text-left transition-colors",
                       active
-                        ? "bg-success-tint ring-2 ring-success"
-                        : "bg-canvas ring-black/5 hover:ring-navy/25",
+                        ? "border-success bg-success-tint"
+                        : "border-line bg-white hover:border-navy/50",
                     )}
                   >
                     <span
@@ -570,7 +595,7 @@ function ResultBody({ decision }: { decision: Decision }) {
         ) : (
           <Button
             size="lg"
-            variant="hero"
+            variant="primary"
             onClick={() => {
               dispatch({ type: "closeResult" });
               dispatch({ type: "goalView", view: "setup" });
@@ -579,7 +604,7 @@ function ResultBody({ decision }: { decision: Decision }) {
             Set a goal
           </Button>
         )}
-        <Button size="lg" variant="outline" onClick={() => dispatch({ type: "closeResult" })}>
+        <Button size="lg" variant="heroSoft" onClick={() => dispatch({ type: "closeResult" })}>
           Close
         </Button>
       </div>

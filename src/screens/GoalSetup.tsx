@@ -88,30 +88,30 @@ export function GoalSetupScreen() {
       />
       <div className="space-y-3.5 px-5">
         <Card className="p-4">
-          <label htmlFor="goal-amount" className="text-[13px] font-semibold text-muted">
+          <label htmlFor="goal-amount" className="text-[15px] font-bold text-ink">
             Total amount
           </label>
           <div className="mt-1 flex items-center gap-2">
-            <span className="text-[38px] leading-none font-extrabold text-ink">$</span>
+            <span className="text-[38px] leading-none font-bold text-ink">$</span>
             <input
               id="goal-amount"
               inputMode="numeric"
               value={dollars ? dollars.toLocaleString("en-AU") : ""}
               onChange={(e) => setAmount(e.target.value)}
               placeholder="0"
-              className="w-0 min-w-0 flex-1 bg-transparent text-[38px] leading-none font-extrabold tracking-[-0.03em] text-ink outline-none tabular placeholder:text-faint"
+              className="w-0 min-w-0 flex-1 bg-transparent text-[38px] leading-none font-bold text-ink tabular placeholder:text-faint"
             />
-            <div className="flex flex-col overflow-hidden rounded-xl ring-1 ring-navy/15">
+            <div className="flex flex-col overflow-hidden rounded-[5px] border border-line-strong">
               <button
                 onClick={() => step(1)}
-                className="grid h-7 w-10 place-items-center text-navy hover:bg-navy/5"
+                className="grid h-7 w-10 place-items-center text-navy hover:bg-navy-faint"
                 aria-label="Increase by $500"
               >
                 <ChevronUp className="size-4" />
               </button>
               <button
                 onClick={() => step(-1)}
-                className="grid h-7 w-10 place-items-center border-t border-navy/15 text-navy hover:bg-navy/5"
+                className="grid h-7 w-10 place-items-center border-t border-line-strong text-navy hover:bg-navy-faint"
                 aria-label="Decrease by $500"
               >
                 <ChevronDown className="size-4" />
@@ -129,7 +129,7 @@ export function GoalSetupScreen() {
         </Card>
 
         <Card className="p-4">
-          <p id="goal-date-label" className="text-[13px] font-semibold text-muted">
+          <p id="goal-date-label" className="text-[15px] font-bold text-ink">
             Timeline end
           </p>
           <div className="relative mt-1.5">
@@ -148,7 +148,7 @@ export function GoalSetupScreen() {
                   el.focus();
                 }
               }}
-              className="flex h-12 w-full items-center rounded-xl bg-canvas pr-3 pl-11 text-left text-[16px] font-semibold text-ink ring-1 ring-black/5 outline-none tabular hover:ring-navy/25 focus-visible:ring-2 focus-visible:ring-navy/40"
+              className="flex h-12 w-full items-center rounded-[5px] border border-line-strong bg-white pr-3 pl-11 text-left text-[16px] text-ink tabular hover:border-navy"
             >
               <span id="goal-date-value">
                 {targetDay !== null ? fmtDMY(targetDay) : "DD/MM/YYYY"}
@@ -185,7 +185,7 @@ export function GoalSetupScreen() {
         </Card>
 
         <Card className="p-4">
-          <label htmlFor="goal-reason" className="text-[13px] font-semibold text-muted">
+          <label htmlFor="goal-reason" className="text-[15px] font-bold text-ink">
             What are you saving for?
           </label>
           <input
@@ -194,7 +194,7 @@ export function GoalSetupScreen() {
             maxLength={40}
             onChange={(e) => setReason(e.target.value)}
             placeholder="e.g. First home starter"
-            className="mt-1.5 h-12 w-full rounded-xl bg-canvas px-3.5 text-[16px] font-semibold text-ink outline-none ring-1 ring-black/5 placeholder:font-medium placeholder:text-faint focus:ring-2 focus:ring-navy/40"
+            className="mt-1.5 h-12 w-full rounded-[5px] border border-line-strong bg-white px-3.5 text-[16px] text-ink placeholder:text-muted/70"
           />
           <div className="mt-3 flex flex-wrap gap-2">
             {REASONS.map((r) => (
@@ -207,7 +207,7 @@ export function GoalSetupScreen() {
         </Card>
 
         {preview && (
-          <div className="rounded-2xl bg-navy/[0.05] px-4 py-3 text-[13px] leading-snug text-ink">
+          <div className="rounded-lg bg-navy-faint px-4 py-3 text-[13px] leading-snug text-ink">
             At your current pace of <b className="tabular">{fmtMoney(PACE.baseCents)}/wk</b>, you’d
             reach {fmtMoney(amountCents, { cents: false })} on <b>{fmtDay(preview.day)}</b>
             {preview.vs > 0 ? (
@@ -222,7 +222,7 @@ export function GoalSetupScreen() {
         )}
 
         <Button
-          variant="hero"
+          variant="primary"
           size="lg"
           className="w-full"
           disabled={!valid}
@@ -254,8 +254,10 @@ function Chip({
     <button
       onClick={onClick}
       className={cx(
-        "h-8 rounded-full px-3 text-[13px] font-semibold transition-colors",
-        active ? "bg-navy text-white" : "bg-navy/[0.06] text-navy hover:bg-navy/10",
+        "h-8 rounded-full border px-3 text-[13.5px] transition-colors duration-300",
+        active
+          ? "border-navy bg-navy text-white"
+          : "border-line-strong bg-white text-ink hover:border-navy",
       )}
     >
       {children}
@@ -296,7 +298,7 @@ export function AnalysingScreen() {
   return (
     <div className="flex min-h-full flex-col items-center px-6 pt-10 pb-8">
       <Navigator mood={done >= STEPS.length ? "happy" : "thinking"} className="w-36" />
-      <h1 className="mt-6 text-center text-[24px] font-extrabold tracking-[-0.02em]">
+      <h1 className="mt-6 text-center font-brand text-[26px] leading-tight text-navy">
         {done >= STEPS.length ? "Your race is ready" : "Analysing your goal"}
       </h1>
       <p className="mt-1 text-center text-[14px] text-muted">
@@ -314,7 +316,7 @@ export function AnalysingScreen() {
               initial={{ opacity: 0, y: 6 }}
               animate={{ opacity: i <= done ? 1 : 0.4, y: 0 }}
               transition={{ delay: i * 0.05 }}
-              className="flex items-center gap-3 rounded-2xl bg-white px-4 py-3 ring-1 ring-black/5"
+              className="flex items-center gap-3 rounded-lg bg-white px-4 py-3 border border-line"
             >
               <span
                 className={cx(
@@ -329,7 +331,7 @@ export function AnalysingScreen() {
                 ) : null}
               </span>
               <div className="min-w-0">
-                <p className="text-[14px] font-semibold">{s.label}</p>
+                <p className="text-[14.5px] font-medium">{s.label}</p>
                 {complete && <p className="truncate text-[12px] text-muted">{s.done}</p>}
               </div>
             </motion.li>

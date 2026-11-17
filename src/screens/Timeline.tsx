@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
-import { ChevronLeft, ChevronRight, Flag, Pause, Play, RotateCcw, X } from "lucide-react";
-import { Card, Notice, Pill, SectionTitle, cx } from "@/components/ui";
+import { ChevronLeft, ChevronRight, Flag, Pause, Play, RotateCcw } from "lucide-react";
+import { Alert, Card, Notice, Pill, SectionTitle, cx } from "@/components/ui";
 import { RaceTrack, checkpointsFor, type LaneMarker } from "@/components/RaceTrack";
 import { RacerSprite } from "@/components/Wallaby";
 import { RACER_META } from "@/data/persona";
@@ -173,7 +173,7 @@ export function TimelineScreen() {
           )}
         </AnimatePresence>
 
-        <div className="relative overflow-hidden rounded-[26px] bg-navy p-4 pb-5 text-white shadow-[0_18px_40px_-18px_rgb(31_28_79/0.7)]">
+        <div className="relative overflow-hidden rounded-2xl bg-navy p-4 pb-5 text-white">
           <div className="mb-3 flex items-start justify-between px-1">
             <div>
               <p className="font-pixel text-[12px] tracking-[0.12em] text-white/55">WALLABY RACE</p>
@@ -205,7 +205,7 @@ export function TimelineScreen() {
             cheer={cheer ? "you" : null}
           />
 
-          <div className="mt-3 flex h-5 items-center justify-center px-1" aria-live="polite">
+          <div className="mt-2.5 flex h-5 items-center justify-center px-1" aria-live="polite">
             <AnimatePresence mode="wait">
               <motion.p
                 key={current?.label ?? (day === 0 ? "start" : "run")}
@@ -293,14 +293,16 @@ export function TimelineScreen() {
                   onClick={() => pickPlan(pl.id)}
                   aria-pressed={active}
                   className={cx(
-                    "flex w-full items-center gap-3 rounded-[20px] bg-white p-3.5 text-left ring-1 transition-all",
-                    active ? "ring-2 ring-hero" : "ring-black/[0.06] hover:ring-navy/25",
+                    "flex w-full items-center gap-3 rounded-xl border bg-white p-3.5 text-left transition-colors",
+                    active
+                      ? "border-navy bg-navy-faint ring-1 ring-navy ring-inset"
+                      : "border-line hover:border-navy",
                   )}
                 >
                   <span
                     className={cx(
                       "grid size-5 shrink-0 place-items-center rounded-full border-2 transition-colors",
-                      active ? "border-hero bg-hero" : "border-navy/25",
+                      active ? "border-navy bg-navy" : "border-line-strong",
                     )}
                   >
                     {active && <span className="size-1.5 rounded-full bg-white" />}
@@ -345,18 +347,18 @@ export function TimelineScreen() {
     return (
       <Card className="p-4">
         <div className="flex items-center gap-3">
-          <span className="grid size-12 shrink-0 place-items-center rounded-2xl bg-navy">
+          <span className="grid size-12 shrink-0 place-items-center rounded-full bg-navy">
             <RacerSprite color={meta.color} ghost={r.id === "ghost"} className="h-7 w-auto" />
           </span>
           <div className="min-w-0 flex-1">
-            <p className="text-[16px] leading-tight font-extrabold">{r.name}</p>
+            <p className="text-[16px] leading-tight font-bold">{r.name}</p>
             <p className="mt-0.5 text-[12.5px] text-muted tabular">
               {r.id === "you" && plan ? `${plan.name} plan` : meta.tag} · {fmtMoney(r.paceCents)}/wk
             </p>
           </div>
           <div className="text-right">
             <p className="text-[11.5px] font-medium text-muted">Arrives</p>
-            <p className="text-[16px] font-extrabold tabular">{fmtDay(r.arrivalDay)}</p>
+            <p className="text-[16px] font-bold tabular">{fmtDay(r.arrivalDay)}</p>
           </div>
         </div>
         <div className="mt-3 flex flex-wrap gap-1.5">
@@ -402,11 +404,11 @@ function Scrubber({
 }) {
   const at = (d: number) => `calc(9px + ${d / maxDay} * (100% - 18px))`;
   return (
-    <div className="mt-2 px-1">
+    <div className="mt-5 px-1">
       <div className="relative h-[18px]">
         <div className="absolute inset-x-[9px] top-1/2 h-1.5 -translate-y-1/2 rounded-full bg-white/15" />
         <div
-          className="absolute top-1/2 left-[9px] h-1.5 -translate-y-1/2 rounded-full bg-[#FF4D42]"
+          className="absolute top-1/2 left-[9px] h-1.5 -translate-y-1/2 rounded-full bg-[#F1423C]"
           style={{ width: `calc(${day / maxDay} * (100% - 18px))` }}
         />
         {racers.map((r) => (
@@ -491,38 +493,25 @@ function DecisionBanner({
     <motion.div
       initial={{ opacity: 0, y: -8 }}
       animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, height: 0, marginBottom: -20 }}
-      className={cx(
-        "relative flex gap-3 rounded-[20px] p-3.5 pr-10 ring-1",
-        approved ? "bg-amber-tint ring-amber/15" : "bg-success-tint ring-success/15",
-      )}
+      exit={{ opacity: 0, height: 0 }}
     >
-      <div className="min-w-0 text-[13px] leading-snug">
-        <p className="font-bold">
-          {decision.purchase.item} {approved ? "approved" : "declined"} ·{" "}
-          {fmtMoney(decision.purchase.amountCents)}
-        </p>
-        <p className="mt-0.5 text-ink/80">
-          {approved ? (
-            <>
-              You were knocked back {fmtSpan(delta)}: {fmtDay(decision.beforeDay!)} →{" "}
-              {fmtDay(decision.afterDay!)}.
-              {reroute && ` With the ${reroute.name} plan you now arrive ${fmtDay(youDay)}.`}
-            </>
-          ) : (
-            <>
-              You stayed on pace for {fmtDay(decision.beforeDay!)} and kept {fmtSpan(delta)}.
-            </>
-          )}
-        </p>
-      </div>
-      <button
-        onClick={onClose}
-        className="absolute top-2.5 right-2.5 grid size-7 place-items-center rounded-full hover:bg-black/5"
-        aria-label="Dismiss"
+      <Alert
+        look={approved ? "warning" : "success"}
+        heading={`${decision.purchase.item} ${approved ? "approved" : "declined"} · ${fmtMoney(decision.purchase.amountCents)}`}
+        onClose={onClose}
       >
-        <X className="size-4" />
-      </button>
+        {approved ? (
+          <>
+            You were knocked back {fmtSpan(delta)}: {fmtDay(decision.beforeDay!)} →{" "}
+            {fmtDay(decision.afterDay!)}.
+            {reroute && ` With the ${reroute.name} plan you now arrive ${fmtDay(youDay)}.`}
+          </>
+        ) : (
+          <>
+            You stayed on pace for {fmtDay(decision.beforeDay!)} and kept {fmtSpan(delta)}.
+          </>
+        )}
+      </Alert>
     </motion.div>
   );
 }
