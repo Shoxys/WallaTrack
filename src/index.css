@@ -311,3 +311,18 @@
     animation-iteration-count: 1 !important;
   }
 }
+
+/* New goal-world styling: reusable on Home, Race and Journey. */
+.wt-goal-card {
+  background: radial-gradient(circle at 70% 55%, #35316f 0%, #262258 56%, #1e1b4b 100%);
+}
+.wt-progress-fill {
+  background: linear-gradient(90deg, #ff6e72 0%, #ffb85c 100%);
+}
+.wt-journey-scene {
+  background: linear-gradient(180deg, #dbe8ff 0%, #dbe9ff 72%, #bddba7 74%, #92c98f 100%);
+}
+.wt-grass {
+  background: radial-gradient(circle at 10px -2px, transparent 15px, #81be7f 16px) 0 0/34px 18px
+    repeat-x;
+}

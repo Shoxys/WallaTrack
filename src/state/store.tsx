@@ -17,7 +17,26 @@ import {
 } from "@/data/persona";
 
 export type Tab = "home" | "account" | "pay" | "goal";
-export type GoalView = "setup" | "analysing" | "insights" | "timeline";
+export type GoalView = "setup" | "analysing" | "insights" | "timeline" | "customise" | "journey";
+
+export type FurColour = "caramel" | "sand" | "silver" | "blush" | "cream" | "lilac";
+export type Outfit = "none" | "hoodie" | "tee" | "overalls" | "cap";
+export type Accessory = "none" | "glasses" | "backpack" | "cap" | "scarf";
+export interface KangarooProfile {
+  name: string;
+  fur: FurColour;
+  outfit: Outfit;
+  accessory: Accessory;
+  /** Joey in the pouch; free to switch on, like every other option */
+  baby: boolean;
+}
+export const DEFAULT_KANGAROO: KangarooProfile = {
+  name: "Milo",
+  fur: "caramel",
+  outfit: "none",
+  accessory: "scarf",
+  baby: false,
+};
 
 export interface Decision {
   id: string;
@@ -44,6 +63,10 @@ export interface State {
   goalView: GoalView;
   savedCents: number;
   goal: Goal | null;
+  kangaroo: KangarooProfile;
+  /** Set only by the presenter's stage-preview buttons, never by payment flow. */
+  demoMilestone: number | null;
+  demoBaselineCents: number | null;
   planId: PlanId | null;
   addedTxns: Txn[];
   decisions: Decision[];
@@ -75,22 +98,27 @@ type Action =
   | { type: "markDecisionSeen" }
   | { type: "toggleCalm" }
   | { type: "reset" }
-  | { type: "ensureGoal" };
+  | { type: "ensureGoal" }
+  | { type: "setKangaroo"; profile: KangarooProfile }
+  | { type: "previewMilestone"; percent: number | null };
 
 export const DEFAULT_GOAL = {
   amountCents: 1_500_000,
   /** 31 Jan 2028 */
   targetDay: 440,
-  reason: "First home starter",
+  reason: "Emergency fund",
 };
 
 const STORAGE_KEY = "wallatrack:v1";
 
 const initialState: State = {
   tab: "home",
-  goalView: "setup",
+  goalView: "timeline",
   savedCents: PERSONA.startingBalanceCents,
-  goal: null,
+  goal: { ...DEFAULT_GOAL, startSavedCents: PERSONA.startingBalanceCents },
+  kangaroo: DEFAULT_KANGAROO,
+  demoMilestone: null,
+  demoBaselineCents: null,
   planId: null,
   addedTxns: [],
   decisions: [],
@@ -108,11 +136,12 @@ function reducer(state: State, action: Action): State {
     case "navigate": {
       let goalView = action.goalView ?? state.goalView;
       if (action.tab === "goal" && !action.goalView) {
-        goalView = state.goal
-          ? state.goalView === "setup"
-            ? "insights"
-            : state.goalView
-          : "setup";
+        // Customise and Journey hide the tab bar. Opening Goal from Home,
+        // Account, or Pay must land on the goal, not the last sub-screen.
+        if (!state.goal) goalView = "setup";
+        else if (state.goalView === "customise" || state.goalView === "journey")
+          goalView = "timeline";
+        else if (state.goalView === "setup") goalView = "insights";
       }
       return {
         ...state,
@@ -183,6 +212,8 @@ function reducer(state: State, action: Action): State {
           ? [...new Set([...state.resolvedPending, purchase.id])]
           : state.resolvedPending,
         savedCents: charged ? state.savedCents - purchase.amountCents : state.savedCents,
+        demoMilestone: null,
+        demoBaselineCents: null,
         addedTxns: charged
           ? [
               {
@@ -218,6 +249,25 @@ function reducer(state: State, action: Action): State {
       return { ...state, focusRacer: action.id };
     case "markDecisionSeen":
       return { ...state, unseenDecisionId: null };
+    case "setKangaroo":
+      return { ...state, kangaroo: action.profile };
+    case "previewMilestone":
+      return {
+        ...state,
+        goal: state.goal ?? { ...DEFAULT_GOAL, startSavedCents: PERSONA.startingBalanceCents },
+        savedCents:
+          action.percent === null
+            ? (state.demoBaselineCents ?? state.savedCents)
+            : Math.round(
+                ((state.goal?.amountCents ?? DEFAULT_GOAL.amountCents) * action.percent) / 100,
+              ),
+        demoMilestone: action.percent,
+        demoBaselineCents:
+          action.percent === null ? null : (state.demoBaselineCents ?? state.savedCents),
+        planId: null,
+        tab: "home",
+        navKey: state.navKey + 1,
+      };
     case "toggleCalm":
       return { ...state, calm: !state.calm };
     case "reset":
@@ -235,7 +285,14 @@ function loadState(): State {
     return {
       ...initialState,
       ...saved,
-      goalView: goalView ?? "setup",
+      goalView: goalView ?? "timeline",
+      kangaroo: { ...DEFAULT_KANGAROO, ...saved.kangaroo },
+      savedCents:
+        saved.demoMilestone !== null && saved.demoMilestone !== undefined
+          ? (saved.demoBaselineCents ?? PERSONA.startingBalanceCents)
+          : (saved.savedCents ?? PERSONA.startingBalanceCents),
+      demoMilestone: null,
+      demoBaselineCents: null,
       check: null,
       openHabit: null,
     };

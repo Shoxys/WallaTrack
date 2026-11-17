@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { RACER_META } from "@/data/persona";
 import { fmtDay, fmtK, savedAt, type RacerId, type RacerProjection } from "@/engine/engine";
+import { useStore } from "@/state/store";
 import { RacerSprite } from "./Wallaby";
 import { cx } from "./ui";
 
@@ -54,6 +55,8 @@ export function RaceTrack({
   cheer?: RacerId | null;
 }) {
   const checkpoints = useMemo(() => checkpointsFor(goalCents), [goalCents]);
+  // The You lane is the customer's own wallaby, dressed as they customised it.
+  const { kangaroo } = useStore().state;
   const places = useMemo(() => {
     const order = [...racers].sort((a, b) => a.arrivalDay - b.arrivalDay);
     const out = {} as Record<RacerId, string>;
@@ -181,6 +184,12 @@ export function RaceTrack({
                   <RacerSprite
                     color={meta.color}
                     ghost={r.id === "ghost"}
+                    {...(r.id === "you" && {
+                      fur: kangaroo.fur,
+                      outfit: kangaroo.outfit,
+                      accessory: kangaroo.accessory,
+                      baby: kangaroo.baby,
+                    })}
                     hopping={playing && !done}
                     delay={-i * 110}
                     className="h-8 w-9"

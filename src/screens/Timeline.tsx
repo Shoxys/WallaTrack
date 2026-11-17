@@ -1,7 +1,16 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
-import { ChevronLeft, ChevronRight, Flag, Pause, Play, RotateCcw } from "lucide-react";
-import { Alert, Card, Notice, Pill, SectionTitle, cx } from "@/components/ui";
+import {
+  ChevronLeft,
+  ChevronRight,
+  Flag,
+  Pause,
+  Pencil,
+  Play,
+  RotateCcw,
+  Trophy,
+} from "lucide-react";
+import { Alert, Card, Notice, Pill, SectionTitle, cardClass, cx } from "@/components/ui";
 import { RaceTrack, checkpointsFor, type LaneMarker } from "@/components/RaceTrack";
 import { RacerSprite } from "@/components/Wallaby";
 import { RACER_META } from "@/data/persona";
@@ -174,16 +183,44 @@ export function TimelineScreen() {
         </AnimatePresence>
 
         <div className="relative overflow-hidden rounded-2xl bg-navy p-4 pb-5 text-white">
-          <div className="mb-3 flex items-start justify-between px-1">
-            <div>
-              <p className="font-pixel text-[12px] tracking-[0.12em] text-white/55">WALLABY RACE</p>
-              <p className="mt-0.5 text-[12px] text-white/70">
-                to {fmtMoney(goal.amountCents, { cents: false })} · target{" "}
-                {fmtMonth(goal.targetDay)}
-              </p>
+          <div className="mb-4 flex items-start justify-between gap-2 px-1 pt-1">
+            <div className="flex min-w-0 items-center gap-2.5">
+              <button
+                onClick={() => dispatch({ type: "goalView", view: "customise" })}
+                aria-label={`Customise ${state.kangaroo.name}`}
+                className="relative grid size-[54px] shrink-0 place-items-center rounded-full bg-white/12 ring-1 ring-white/25"
+              >
+                <RacerSprite
+                  color={RACER_META.you.color}
+                  fur={state.kangaroo.fur}
+                  outfit={state.kangaroo.outfit}
+                  accessory={state.kangaroo.accessory}
+                  baby={state.kangaroo.baby}
+                  className="h-10 w-auto"
+                />
+                <span className="absolute -right-1 -bottom-1 grid size-5 place-items-center rounded-full bg-white text-navy">
+                  <Pencil className="size-3" />
+                </span>
+              </button>
+              <div className="min-w-0">
+                <p className="font-pixel text-[11px] tracking-[0.12em] text-white/55">
+                  WALLABY RACE
+                </p>
+                <button
+                  onClick={() => dispatch({ type: "goalView", view: "customise" })}
+                  className="flex max-w-full items-center gap-1.5 text-[18px] leading-tight font-bold"
+                >
+                  <span className="truncate">{state.kangaroo.name}</span>
+                  <Pencil className="size-3.5 shrink-0 text-white/70" />
+                </button>
+                <p className="text-[12px] whitespace-nowrap text-white/70">
+                  to {fmtMoney(goal.amountCents, { cents: false })} · target{" "}
+                  {fmtMonth(goal.targetDay)}
+                </p>
+              </div>
             </div>
-            <div className="text-right">
-              <p className="font-pixel text-[22px] leading-none tracking-wide tabular">
+            <div className="shrink-0 pt-1 text-right">
+              <p className="font-pixel text-[21px] leading-none tracking-wide tabular">
                 {fmtMonth(day).toUpperCase()}
               </p>
               <p className="mt-1 font-pixel text-[11px] tracking-wider text-white/55">
@@ -205,7 +242,17 @@ export function TimelineScreen() {
             cheer={cheer ? "you" : null}
           />
 
-          <div className="mt-2.5 flex h-5 items-center justify-center px-1" aria-live="polite">
+          <div className="mt-4 flex justify-center">
+            <button
+              onClick={() => dispatch({ type: "goalView", view: "journey" })}
+              className="inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-2 text-[14px] font-bold text-white transition-colors hover:bg-white/15"
+            >
+              <Trophy className="size-4 text-[#FFD36E]" /> You're{" "}
+              <span className="text-[#FFD36E]">{Math.round(p.progress * 100)}%</span> to your goal
+              <ChevronRight className="size-3.5 text-white/55" />
+            </button>
+          </div>
+          <div className="mt-2 flex h-5 items-center justify-center px-1" aria-live="polite">
             <AnimatePresence mode="wait">
               <motion.p
                 key={current?.label ?? (day === 0 ? "start" : "run")}
@@ -262,7 +309,34 @@ export function TimelineScreen() {
           </div>
         </div>
 
-        {renderRacerDetails()}
+        <button
+          onClick={() => dispatch({ type: "goalView", view: "customise" })}
+          className={cx(
+            cardClass,
+            "flex w-full items-center gap-3 p-3.5 text-left transition-colors hover:bg-canvas-faint",
+          )}
+        >
+          <span className="grid size-14 shrink-0 place-items-center rounded-xl bg-navy">
+            <RacerSprite
+              color={RACER_META.you.color}
+              fur={state.kangaroo.fur}
+              outfit={state.kangaroo.outfit}
+              accessory={state.kangaroo.accessory}
+              baby={state.kangaroo.baby}
+              className="h-10 w-auto"
+            />
+          </span>
+          <span className="min-w-0 flex-1">
+            <b className="block truncate text-[16px]">{state.kangaroo.name}</b>
+            <span className="text-[12.5px] text-muted">Your wallaby · tap to customise</span>
+          </span>
+          <ChevronRight className="size-4 shrink-0 text-muted" />
+          <span className="border-l border-line pl-3 text-right">
+            <span className="block text-[11.5px] text-muted">Arrives</span>
+            <b className="block text-[13px] whitespace-nowrap tabular">{fmtDay(p.youDay)}</b>
+          </span>
+        </button>
+        {state.focusRacer !== "you" && renderRacerDetails()}
 
         <section className="space-y-2.5">
           <SectionTitle

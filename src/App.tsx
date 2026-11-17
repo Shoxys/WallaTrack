@@ -14,6 +14,8 @@ import { HomeScreen } from "@/screens/Home";
 import { InsightsScreen } from "@/screens/Insights";
 import { PayScreen, PurchaseSheet } from "@/screens/Pay";
 import { TimelineScreen } from "@/screens/Timeline";
+import { CustomiseScreen } from "@/screens/Customise";
+import { JourneyScreen } from "@/screens/Journey";
 
 // Number guard: re-check every published demo date once at startup.
 const ENGINE_CHECKS = verifyDemoDates();
@@ -57,11 +59,12 @@ function AppShell() {
     scrollRef.current?.scrollTo({ top: 0 });
   }, [state.navKey]);
 
-  const goalView = !state.goal
-    ? state.goalView === "analysing"
-      ? "analysing"
-      : "setup"
-    : state.goalView;
+  // Customise needs no goal; every other goal view does.
+  const goalView =
+    state.goal || state.goalView === "analysing" || state.goalView === "customise"
+      ? state.goalView
+      : "setup";
+  const standalone = state.tab === "goal" && (goalView === "customise" || goalView === "journey");
   const screenKey = state.tab === "goal" ? `goal-${goalView}` : state.tab;
   const screen = {
     home: <HomeScreen />,
@@ -72,6 +75,8 @@ function AppShell() {
       analysing: <AnalysingScreen />,
       insights: <InsightsScreen />,
       timeline: <TimelineScreen />,
+      customise: <CustomiseScreen />,
+      journey: <JourneyScreen />,
     }[goalView],
   }[state.tab];
 
@@ -97,7 +102,7 @@ function AppShell() {
         <HabitSheet />
         <PurchaseSheet />
       </div>
-      <BottomNav />
+      {!standalone && <BottomNav />}
     </div>
   );
 }
@@ -143,6 +148,21 @@ function PresenterPanel() {
       go: () => {
         dispatch({ type: "ensureGoal" });
         dispatch({ type: "goalView", view: "timeline" });
+      },
+    },
+    {
+      label: "Customise wallaby",
+      hint: "Fur, outfit and accessories",
+      active: state.tab === "goal" && state.goalView === "customise",
+      go: () => dispatch({ type: "goalView", view: "customise" }),
+    },
+    {
+      label: "Your journey",
+      hint: "Savings milestones",
+      active: state.tab === "goal" && state.goalView === "journey",
+      go: () => {
+        dispatch({ type: "ensureGoal" });
+        dispatch({ type: "goalView", view: "journey" });
       },
     },
     {
@@ -200,6 +220,34 @@ function PresenterPanel() {
           ))}
         </ol>
       </nav>
+
+      <div className="mt-6 rounded-lg border border-line bg-white px-4 py-3">
+        <p className="text-[14px] font-bold">Preview savings milestones</p>
+        <p className="text-[12px] text-muted">Demo-only balance. Live projections update.</p>
+        <div className="mt-2.5 flex flex-wrap gap-1.5">
+          {[20, 25, 50, 75, 100].map((percent) => (
+            <button
+              key={percent}
+              onClick={() => dispatch({ type: "previewMilestone", percent })}
+              aria-pressed={state.demoMilestone === percent}
+              className={cx(
+                "h-8 rounded-[4px] border px-2.5 text-[13px] font-medium tabular transition-colors",
+                state.demoMilestone === percent
+                  ? "border-navy bg-navy text-white"
+                  : "border-line-strong bg-white text-ink hover:bg-navy-faint",
+              )}
+            >
+              {percent}%
+            </button>
+          ))}
+          <button
+            onClick={() => dispatch({ type: "previewMilestone", percent: null })}
+            className="h-8 px-1.5 text-[13px] text-hero hover:underline"
+          >
+            Actual
+          </button>
+        </div>
+      </div>
 
       <div className="mt-6 space-y-2.5">
         <label className="flex cursor-pointer items-center justify-between rounded-lg border border-line bg-white px-4 py-3">
