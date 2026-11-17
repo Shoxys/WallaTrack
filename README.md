@@ -8,7 +8,7 @@ Built for the Westpac Innovation and Coding Competition.
 
 Everyday Westpac customers who have a savings goal, such as a first home deposit. They rarely open budgeting tools, but they make purchases every day. WallaTrack puts the goal into the purchase itself, not a budgeting tab nobody opens.
 
-## How to test it (for judges)
+## How to test it
 
 You need [Node.js 22](https://nodejs.org) or newer.
 
